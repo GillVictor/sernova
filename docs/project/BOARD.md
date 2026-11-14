@@ -38,7 +38,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 | P-01 | Machine à états de la transaction, logique pure, tests par table de la matrice | B | S1-T1 | À faire | | |
 | P-02 | Couverture, éligibilité d'une demande, règle « offre valable », logique pure | C | S1-T1 | À faire | | |
 | P-03 | Interface de paiement, fournisseur simulé, états du paiement | D | S1-T1 | À faire | | |
-| P-04 | Squelette Flutter : thème, i18n, infobulles d'aide, client d'API, serveur factice | E | contrat | À faire | | |
+| P-04 | Squelette Flutter : thème, i18n, infobulles d'aide, client d'API, serveur factice (partie 1 : ressources i18n et infobulles ; reste à faire par une instance avec Flutter) | E | contrat | En cours | Claude (développeur mobile) | feat/p04-mobile-l10n |
 | P-05 | Squelette Next.js : connexion, client d'API, serveur factice | F | contrat | À faire | | |
 | P-06 | Collection de requêtes et liste de contrôle de sécurité | G | S1-T3 | À faire | | |
 | P-07 | Génération du schéma OpenAPI et du serveur factice à partir du contrat | H | | À faire | | |
