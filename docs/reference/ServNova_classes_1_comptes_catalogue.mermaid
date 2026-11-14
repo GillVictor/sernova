@@ -1,0 +1,106 @@
+---
+title: ServNova - Classes 1/3 - Comptes, localisation, catalogue
+---
+classDiagram
+direction TB
+%% Enumerations : StatutCompte, Capacite (Client, Prestataire), Niveau, ModeCouverture (Quartier, Ville, Rayon, Pays),
+%% LocalisationActive (Travail, Domicile), TypeVerification, EtatValidation, StatutOffre (Brouillon, Publiee, Desactivee),
+%% TypeOffre (Service, Bien), Modalite, ModePrix, Portee (Locale, Internationale), EtatCreneau (Libre, Reserve)
+class Pays {
+  +String code
+  +String nom
+  +String devise
+  +Boolean actif
+}
+class Localite {
+  +String ville
+  +String quartier
+  +Decimal latitude
+  +Decimal longitude
+}
+class Utilisateur {
+  +String email
+  +String telephone
+  +String nomAffiche
+  +String langue
+  +Capacites capacites
+  +StatutCompte statut
+  +Date dateInscription
+}
+class Permission {
+  +String code
+  +String description
+}
+class ProfilPrestataire {
+  +String nomCommercial
+  +String description
+  +Niveau niveauVerification
+  +URL lienPortfolio
+  +URL lienVideo
+  +ModeCouverture modeCouverture
+  +Integer rayonKm
+  +LocalisationActive localisationActive
+  +Decimal tauxAchevementDerive
+  +Decimal noteMoyenneDerivee
+}
+class Verification {
+  +TypeVerification type
+  +EtatValidation statut
+  +Date date
+}
+class Categorie {
+  +String nom
+  +Integer ordre
+  +Boolean active
+  +String famille
+  +Niveau niveauVerificationMin
+}
+class DefinitionAttribut {
+  +String nom
+  +TypeValeur typeValeur
+  +Boolean obligatoire
+  +String options
+}
+class ValeurAttribut {
+  +String valeur
+}
+class Offre {
+  +String titre
+  +String description
+  +TypeOffre type
+  +Modalite modalite
+  +ModePrix modePrix
+  +Integer prix
+  +String devise
+  +Portee portee
+  +EtatValidation validationInternationale
+  +StatutOffre statut
+  +Integer fraisLivraison
+  +String modesRemise
+}
+class Article {
+  +String designation
+  +Integer prix
+  +Boolean disponible
+  +URL photo
+}
+class Creneau {
+  +DateTime debut
+  +DateTime fin
+  +EtatCreneau etat
+}
+Pays "1" *-- "1..*" Localite : contient
+Utilisateur "*" -- "*" Permission : possede
+Utilisateur "1" -- "0..1" ProfilPrestataire : a
+ProfilPrestataire "*" --> "1" Localite : lieuTravail
+ProfilPrestataire "*" --> "0..1" Localite : domicile
+ProfilPrestataire "*" -- "*" Categorie : domaines
+ProfilPrestataire "1" -- "*" Verification : verifie
+ProfilPrestataire "1" -- "*" Offre : publie
+Categorie "0..1" <-- "*" Categorie : parent
+Categorie "1" -- "*" Offre : classe
+Categorie "1" -- "*" DefinitionAttribut : decrite par
+DefinitionAttribut "1" -- "*" ValeurAttribut : definit
+Offre "1" -- "*" ValeurAttribut : renseigne
+Offre "1" *-- "*" Article : comprend
+ProfilPrestataire "1" *-- "*" Creneau : disponibilites

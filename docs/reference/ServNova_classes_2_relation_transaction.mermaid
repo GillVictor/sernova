@@ -1,0 +1,115 @@
+---
+title: ServNova - Classes 2/3 - Mise en relation et transaction
+---
+classDiagram
+direction TB
+%% Enumerations : StatutDemande (Ouverte, Attribuee, Expiree, Fermee), StatutProposition (Active, Retiree, Refusee, Retenue, NonRetenue),
+%% TypeTransaction (Prestation, Vente, Livraison), OrigineTransaction (Offre, Demande),
+%% StatutTransaction (EnAttente, Acceptee, Planifiee, EnCours, Terminee, Confirmee, Cloturee, Annulee, Contestee),
+%% StatutConversation (Ouverte, LectureSeule), TypeMessage (Texte, Fichier, Systeme), TypeJustificatif
+class Demande {
+  +String titre
+  +String description
+  +Date delai
+  +Integer budget
+  +String devise
+  +StatutDemande statut
+  +Date dateExpiration
+  +Integer nbDestinataires
+  +Integer maxPropositions
+}
+class Proposition {
+  +Integer prix
+  +String devise
+  +String conditions
+  +String delai
+  +StatutProposition statut
+  +DateTime date
+}
+class Conversation {
+  +StatutConversation statut
+  +DateTime creeeLe
+}
+class Message {
+  +TypeMessage type
+  +String contenu
+  +URL pieceJointe
+  +DateTime envoyeLe
+  +DateTime luLe
+  +Boolean masque
+}
+class Transaction {
+  +String reference
+  +TypeTransaction type
+  +OrigineTransaction origine
+  +StatutTransaction statut
+  +DateTime dateAccord
+  +DateTime dateCloture
+  +DateTime dateLimiteConfirmation
+  +String modeRemise
+  +String adresseIntervention
+}
+class LigneTransaction {
+  +Integer quantite
+  +Integer prixUnitaire
+}
+class ConditionsFigees {
+  +String description
+  +Integer prix
+  +String devise
+  +String delai
+  +Modalite modalite
+  +ModePrix modePrix
+}
+class HistoriqueStatut {
+  +StatutTransaction ancienStatut
+  +StatutTransaction nouveauStatut
+  +DateTime date
+  +String motif
+}
+class Justificatif {
+  +TypeJustificatif type
+  +URL fichierOuLien
+  +String description
+  +DateTime dateDepot
+}
+class Livraison {
+  +String pointRamassage
+  +String pointRemise
+  +Integer fraisLivraison
+  +String codeRemiseHache
+  +DateTime ramasseeLe
+  +DateTime livreeLe
+}
+class Utilisateur { +String email }
+class ProfilPrestataire { +String nomCommercial }
+class Offre { +String titre }
+class Article { +String designation }
+class Creneau { +DateTime debut }
+class Categorie { +String nom }
+class Localite { +String ville }
+Utilisateur "1" -- "*" Demande : demandeur
+Categorie "1" -- "*" Demande : classe
+Localite "0..1" -- "*" Demande : zone
+Demande "1" -- "*" Proposition : recoit
+ProfilPrestataire "1" -- "*" Proposition : emet
+Utilisateur "1" -- "*" Transaction : client
+ProfilPrestataire "1" -- "*" Transaction : prestataire
+Offre "0..1" -- "*" Transaction : voie A
+Proposition "0..1" -- "0..1" Transaction : retenue
+Transaction "0..1" -- "0..1" Transaction : livraison associee a la vente
+Creneau "0..1" -- "0..1" Transaction : reserve
+Transaction "1" *-- "1" ConditionsFigees : fige
+Transaction "1" *-- "*" HistoriqueStatut : historise
+Transaction "1" *-- "*" Justificatif : prouve
+Transaction "1" *-- "*" LigneTransaction : contient
+LigneTransaction "*" --> "1" Article : porte sur
+Livraison "0..1" -- "1" Transaction : detail de
+Utilisateur "1" -- "*" HistoriqueStatut : acteur
+Utilisateur "1" -- "*" Justificatif : auteur
+Utilisateur "1" -- "*" Conversation : client
+ProfilPrestataire "1" -- "*" Conversation : prestataire
+Demande "0..1" -- "*" Conversation : origine
+Transaction "0..1" -- "0..1" Conversation : origine
+Conversation "1" *-- "*" Message : contient
+Utilisateur "1" -- "*" Message : expediteur

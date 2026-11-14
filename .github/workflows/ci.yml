@@ -1,0 +1,16 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build et tests
+        if: ${{ hashFiles('backend/**/*.sln', 'backend/**/*.slnx') != '' }}
+        run: |
+          dotnet restore backend
+          dotnet build backend --no-restore -c Release
+          dotnet test backend --no-build -c Release

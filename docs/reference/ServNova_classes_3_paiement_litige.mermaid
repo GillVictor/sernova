@@ -1,0 +1,71 @@
+---
+title: ServNova - Classes 3/3 - Paiement, evaluation, litiges, supervision
+---
+classDiagram
+direction TB
+%% Enumerations : StatutPaiement (Initie, Reserve, Libere, Rembourse, Echoue), StatutReversement,
+%% StatutLitige (Ouvert, EnInstruction, Decide), DecisionLitige (LiberationTotale, LiberationPartielle, Remboursement),
+%% StatutEvaluation, Canal (Push, Email, InApp)
+class Paiement {
+  +String referenceFournisseur
+  +Integer montant
+  +String devise
+  +String operateur
+  +StatutPaiement statut
+  +String cleIdempotence
+  +DateTime dateCreation
+  +DateTime dateConfirmation
+  +String motifEchec
+}
+class Reversement {
+  +Integer montant
+  +Integer commission
+  +StatutReversement statut
+  +String reference
+}
+class Evaluation {
+  +Integer note
+  +String commentaire
+  +DateTime date
+  +StatutEvaluation statut
+}
+class Litige {
+  +String motif
+  +String description
+  +StatutLitige statut
+  +DecisionLitige decision
+  +Integer montantRembourse
+  +DateTime dateOuverture
+  +DateTime dateDecision
+}
+class Notification {
+  +String type
+  +String contenu
+  +Canal canal
+  +Boolean lue
+  +DateTime date
+}
+class JournalAction {
+  +String action
+  +String objetType
+  +String objetId
+  +DateTime date
+  +String details
+}
+class Transaction { +String reference }
+class Utilisateur { +String email }
+class Justificatif { +String description }
+class Demande { +String titre }
+Transaction "1" -- "*" Paiement : regle
+Transaction "1" -- "0..1" Reversement : verse
+Transaction "1" -- "0..2" Evaluation : porte sur
+Transaction "1" -- "0..1" Litige : conteste
+Utilisateur "1" -- "*" Evaluation : auteur
+Utilisateur "1" -- "*" Evaluation : cible
+Utilisateur "1" -- "*" Litige : ouvert par
+Utilisateur "0..1" -- "*" Litige : traite par
+Litige "0..1" -- "*" Justificatif : preuves
+Utilisateur "1" -- "*" Notification : destinataire
+Transaction "0..1" -- "*" Notification : concerne
+Demande "0..1" -- "*" Notification : concerne
+Utilisateur "1" -- "*" JournalAction : acteur
