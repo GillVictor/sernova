@@ -30,7 +30,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 | ID | Tâche | Dépend de | Statut | Propriétaire | Branche |
 |---|---|---|---|---|---|
 | FR-01 | Squelette de l'application Flutter (client et prestataire) : navigation, thème, authentification | S1-T3 | À faire | | |
-| FR-02 | Squelette de l'administration Next.js : connexion, gestion des catégories | S1-T6 | À faire | | |
+| FR-02 | Squelette de l'administration Next.js : connexion, gestion des catégories (écrans sur serveur factice ; branchement au vrai backend après S1-T6) | S1-T6, P-05 | En cours | Claude (développeur administration) | feat/fr02-admin-categories |
 
 ## Voies parallèles (voir `LANES.md`)
 | ID | Tâche | Voie | Dépend de | Statut | Propriétaire | Branche |
