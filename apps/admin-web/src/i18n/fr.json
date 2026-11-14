@@ -1,0 +1,47 @@
+{
+  "app": {
+    "name": "ServNova Administration"
+  },
+  "common": {
+    "helpButtonLabel": "Aide sur le champ « {field} »",
+    "loading": "Chargement…"
+  },
+  "login": {
+    "title": "Connexion à l'administration",
+    "submit": "Se connecter",
+    "submitting": "Connexion en cours…",
+    "fields": {
+      "phone": {
+        "label": "Numéro de téléphone",
+        "placeholder": "+242 06 123 45 67",
+        "help": "Saisissez le numéro utilisé à l'inscription, avec l'indicatif du pays (ex. +242 pour le Congo). C'est votre identifiant de connexion."
+      },
+      "password": {
+        "label": "Mot de passe",
+        "placeholder": "",
+        "help": "Saisissez le mot de passe de votre compte. En cas d'oubli, utilisez la réinitialisation depuis l'application mobile. Ne le communiquez jamais à un tiers."
+      }
+    }
+  },
+  "home": {
+    "title": "Tableau de bord",
+    "welcome": "Connecté en tant que {name}.",
+    "logout": "Se déconnecter"
+  },
+  "errors": {
+    "INVALID_CREDENTIALS": "Numéro ou mot de passe incorrect.",
+    "ACCOUNT_SUSPENDED": "Ce compte est suspendu. Contactez un administrateur.",
+    "PHONE_NOT_VERIFIED": "Le numéro n'est pas encore vérifié.",
+    "RATE_LIMITED": "Trop de tentatives. Réessayez dans {seconds} secondes.",
+    "RATE_LIMITED_NO_DELAY": "Trop de tentatives. Réessayez plus tard.",
+    "VALIDATION_FAILED": "Certaines informations sont invalides.",
+    "UNAUTHENTICATED": "Votre session a expiré. Reconnectez-vous.",
+    "TOKEN_EXPIRED": "Votre session a expiré. Reconnectez-vous.",
+    "TOKEN_REVOKED": "Votre session a été fermée. Reconnectez-vous.",
+    "NETWORK": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+    "UNKNOWN": "Une erreur est survenue. Réessayez."
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire."
+  }
+}
