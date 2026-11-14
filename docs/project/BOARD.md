@@ -39,7 +39,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 | P-02 | Couverture, éligibilité d'une demande, règle « offre valable », logique pure | C | S1-T1 | À faire | | |
 | P-03 | Interface de paiement, fournisseur simulé, états du paiement | D | S1-T1 | À faire | | |
 | P-04 | Squelette Flutter : thème, i18n, infobulles d'aide, client d'API, serveur factice | E | contrat | À faire | | |
-| P-05 | Squelette Next.js : connexion, client d'API, serveur factice | F | contrat | En cours | Claude (développeur administration) | feat/p05-admin-skeleton |
+| P-05 | Squelette Next.js : connexion, client d'API, serveur factice | F | contrat | En revue | Claude (développeur administration) | feat/p05-admin-skeleton |
 | P-06 | Collection de requêtes et liste de contrôle de sécurité | G | S1-T3 | À faire | | |
 | P-07 | Génération du schéma OpenAPI et du serveur factice à partir du contrat | H | | À faire | | |
 | P-08 | Fichier des quartiers de Brazzaville et de Pointe-Noire | Humain | | À faire | | |
