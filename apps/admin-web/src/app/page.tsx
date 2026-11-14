@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { t } from "@/i18n";
@@ -35,6 +36,7 @@ export default function HomePage() {
       <h1>{t("home.title")}</h1>
       {error && <p className="field__error" role="alert">{error}</p>}
       {name !== null && <p>{t("home.welcome", { name })}</p>}
+      <p><Link href="/categories">{t("home.categories")}</Link></p>
       <button type="button" onClick={logout}>{t("home.logout")}</button>
     </main>
   );

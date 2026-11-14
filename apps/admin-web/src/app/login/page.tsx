@@ -43,6 +43,7 @@ export default function LoginPage() {
       <h1>{t("login.title")}</h1>
       <form onSubmit={onSubmit} noValidate>
         <TextField
+          form="login"
           name="phone"
           type="tel"
           autoComplete="username"
@@ -51,6 +52,7 @@ export default function LoginPage() {
           error={fieldErrors.phone}
         />
         <TextField
+          form="login"
           name="password"
           type="password"
           autoComplete="current-password"

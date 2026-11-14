@@ -12,6 +12,54 @@ export interface CurrentUser {
   providerStatus?: unknown;
 }
 
+/**
+ * Shapes below follow the contract's indicative field names (sheet "Endpoints");
+ * see OP-17 in docs/open-points.md.
+ */
+export type Family = "Numerique" | "Domicile" | "Travaux" | "Vente" | "Livraison";
+export type VerificationLevel = "N0" | "N1" | "N2" | "N3";
+export type ValueType = "Texte" | "Nombre" | "Booleen" | "Liste";
+
+export interface Category {
+  id: string;
+  name: string;
+  order: number;
+  active: boolean;
+  family: Family;
+  minVerificationLevel: VerificationLevel;
+  children?: Category[];
+}
+
+export interface AttributeDefinition {
+  id: string;
+  name: string;
+  valueType: ValueType;
+  required: boolean;
+  options?: string;
+}
+
+export interface CreateCategoryInput {
+  parentId?: string;
+  name: string;
+  order: number;
+  family?: Family;
+  minVerificationLevel: VerificationLevel;
+}
+
+export interface UpdateCategoryInput {
+  name?: string;
+  order?: number;
+  active?: boolean;
+  minVerificationLevel?: VerificationLevel;
+}
+
+export interface AddAttributeInput {
+  name: string;
+  valueType: ValueType;
+  required: boolean;
+  options?: string;
+}
+
 type Fetch = typeof fetch;
 
 export interface ApiClientOptions {
@@ -58,18 +106,48 @@ export class ApiClient {
     return this.send<CurrentUser>(routes.me, { auth: true });
   }
 
+  // EP-021
+  listCategories(): Promise<Category[]> {
+    return this.send<Category[]>(routes.categories);
+  }
+
+  // EP-022
+  categoryAttributes(categoryId: string): Promise<AttributeDefinition[]> {
+    return this.send<AttributeDefinition[]>(routes.categoryAttributes, { params: { id: categoryId } });
+  }
+
+  // EP-089
+  createCategory(input: CreateCategoryInput): Promise<Category> {
+    return this.send<Category>(routes.createCategory, { body: input, auth: true });
+  }
+
+  // EP-090
+  updateCategory(id: string, input: UpdateCategoryInput): Promise<Category> {
+    return this.send<Category>(routes.updateCategory, { body: input, auth: true, params: { id } });
+  }
+
+  // EP-091
+  addAttribute(categoryId: string, input: AddAttributeInput): Promise<AttributeDefinition> {
+    return this.send<AttributeDefinition>(routes.addAttribute, {
+      body: input,
+      auth: true,
+      params: { id: categoryId },
+    });
+  }
+
   private async send<T>(
     route: Route,
-    opts: { body?: unknown; auth?: boolean; retry?: boolean } = {},
+    opts: { body?: unknown; auth?: boolean; retry?: boolean; params?: Record<string, string> } = {},
   ): Promise<T> {
-    const { body, auth = false, retry = true } = opts;
+    const { body, auth = false, retry = true, params = {} } = opts;
+    const path = route.path.replace(/\{(\w+)\}/g, (_, k: string) => encodeURIComponent(params[k] ?? ""));
     const headers: Record<string, string> = { "Accept-Language": "fr" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
     if (auth && this.tokens) headers.Authorization = `Bearer ${this.tokens.accessToken}`;
 
     let response: Response;
     try {
-      response = await this.fetchImpl(`${this.baseUrl}${route.path}`, {
+      response = await this.fetchImpl(`${this.baseUrl}${path}`, {
         method: route.method,
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),

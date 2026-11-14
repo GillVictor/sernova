@@ -1,36 +1,33 @@
 "use client";
 
 import { useId, type InputHTMLAttributes } from "react";
-import { t, type MessageKey } from "@/i18n";
 import { FieldHelp } from "./FieldHelp";
+import { fieldTexts, type FieldName, type FormName } from "./fieldTexts";
 
-type FieldName = "phone" | "password";
-
-interface TextFieldProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "id" | "name" | "placeholder"> {
-  /** Key under `login.fields` (label, placeholder, help) in src/i18n/fr.json. */
-  name: FieldName;
-  /** Message key prefix of the form, e.g. "login.fields". */
-  scope?: "login.fields";
+type TextFieldProps<F extends FormName> = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "id" | "name" | "placeholder"
+> & {
+  /** Form whose texts live under `<form>.fields.<name>` in fr.json. */
+  form: F;
+  name: FieldName<F>;
   error?: string;
-}
+};
 
 /**
- * Every text input of the app goes through this component, so that a help
- * tooltip (texts in fr.json) is always present: there is no way to omit it.
+ * Every text/number/password input goes through this component (or SelectField,
+ * CheckboxField), so a help tooltip with texts from fr.json is always present.
  */
-export function TextField({ name, scope = "login.fields", error, ...input }: TextFieldProps) {
+export function TextField<F extends FormName>({ form, name, error, ...input }: TextFieldProps<F>) {
   const id = useId();
-  const key = (part: "label" | "placeholder" | "help") => `${scope}.${name}.${part}` as MessageKey;
-  const label = t(key("label"));
-  const placeholder = t(key("placeholder"));
+  const { label, placeholder, help } = fieldTexts(form, name);
   const errorId = `${id}-error`;
 
   return (
     <div className="field">
       <div className="field__head">
         <label htmlFor={id}>{label}</label>
-        <FieldHelp fieldLabel={label} text={t(key("help"))} />
+        <FieldHelp fieldLabel={label} text={help} />
       </div>
       <input
         {...input}

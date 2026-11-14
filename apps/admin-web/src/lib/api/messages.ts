@@ -9,6 +9,10 @@ const known = new Set([
   "UNAUTHENTICATED",
   "TOKEN_EXPIRED",
   "TOKEN_REVOKED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "DUPLICATE_NAME",
+  "CATEGORY_IN_USE",
 ]);
 
 /** Turns an error into a French message. Stable codes only: server texts are never shown. */

@@ -72,4 +72,52 @@ describe("ApiClient", () => {
   it("never shows server-provided text for unknown codes", () => {
     expect(errorMessage(new ApiError(500, "SOMETHING_ELSE"))).toBe("Une erreur est survenue. Réessayez.");
   });
+
+  it("calls the category routes with path parameters (EP-021, 022, 089, 090, 091)", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(json(200, { accessToken: "a", refreshToken: "r" }))
+      .mockImplementation(async () => json(200, []));
+    const client = make(fetchImpl);
+    await client.login("p", "w");
+
+    await client.listCategories();
+    await client.categoryAttributes("c 1");
+    await client.createCategory({ name: "N", order: 1, family: "Vente", minVerificationLevel: "N0" });
+    await client.updateCategory("c1", { active: false });
+    await client.addAttribute("c1", { name: "Marque", valueType: "Texte", required: false });
+
+    const calls = fetchImpl.mock.calls.slice(1).map(([url, init]) => `${(init as RequestInit).method} ${url}`);
+    expect(calls).toEqual([
+      "GET http://api/api/v1/categories",
+      "GET http://api/api/v1/categories/c%201/attributes",
+      "POST http://api/api/v1/admin/categories",
+      "PATCH http://api/api/v1/admin/categories/c1",
+      "POST http://api/api/v1/admin/categories/c1/attributes",
+    ]);
+    const patch = fetchImpl.mock.calls[4][1] as RequestInit;
+    expect(patch.body).toBe(JSON.stringify({ active: false }));
+    expect((patch.headers as Record<string, string>).Authorization).toBe("Bearer a");
+    // public routes send no token
+    expect((fetchImpl.mock.calls[1][1] as RequestInit).headers).not.toHaveProperty("Authorization");
+  });
+
+  it("keeps field errors of a 422 and the stable code of a 403/409", async () => {
+    const client = make(
+      vi
+        .fn()
+        .mockResolvedValueOnce(json(422, { code: "VALIDATION_FAILED", errors: [{ field: "name", code: "REQUIRED" }] }))
+        .mockResolvedValueOnce(json(403, { code: "FORBIDDEN" }))
+        .mockResolvedValueOnce(json(409, { code: "DUPLICATE_NAME" })),
+    );
+    const input = { name: "", order: 0, family: "Vente" as const, minVerificationLevel: "N0" as const };
+    const e1 = await client.createCategory(input).catch((e) => e);
+    expect(e1.fieldErrors).toEqual([{ field: "name", code: "REQUIRED" }]);
+    expect(errorMessage(await client.createCategory(input).catch((e) => e))).toBe(
+      "Vous n'avez pas la permission d'effectuer cette action.",
+    );
+    expect(errorMessage(await client.createCategory(input).catch((e) => e))).toBe(
+      "Ce nom existe déjà dans cette catégorie parente.",
+    );
+  });
 });

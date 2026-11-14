@@ -13,17 +13,27 @@ function files(dir: string): string[] {
 }
 
 describe("French resources", () => {
-  it("every field has a non-empty label and help text", () => {
-    for (const [name, field] of Object.entries(messages.login.fields)) {
-      expect(field.label, `${name}.label`).not.toBe("");
-      expect(field.help.length, `${name}.help`).toBeGreaterThan(20);
+  it("every field of every form has a non-empty label and help text", () => {
+    const forms = { login: messages.login.fields, category: messages.category.fields, attribute: messages.attribute.fields };
+    for (const [form, fields] of Object.entries(forms)) {
+      for (const [name, field] of Object.entries(fields)) {
+        expect(field.label, `${form}.${name}.label`).not.toBe("");
+        expect(field.help.length, `${form}.${name}.help`).toBeGreaterThan(20);
+      }
     }
   });
 
-  it("no raw <input> is used outside TextField (so no field escapes its tooltip)", () => {
+  it("every enum value shown in a list has a French label", () => {
+    expect(Object.keys(messages.category.options.family)).toEqual(["Numerique", "Domicile", "Travaux", "Vente", "Livraison"]);
+    expect(Object.keys(messages.category.options.level)).toEqual(["N0", "N1", "N2", "N3"]);
+    expect(Object.keys(messages.attribute.options.valueType)).toEqual(["Texte", "Nombre", "Booleen", "Liste"]);
+  });
+
+  it("no raw <input>/<select>/<textarea> outside the field components (no field escapes its tooltip)", () => {
+    const allowed = ["TextField.tsx", "SelectField.tsx", "CheckboxField.tsx"];
     const offenders = files(srcDir)
-      .filter((f) => /\.tsx$/.test(f) && !/\.test\.tsx$/.test(f) && !f.endsWith("TextField.tsx"))
-      .filter((f) => /<input[\s>]/.test(readFileSync(f, "utf8")));
+      .filter((f) => /\.tsx$/.test(f) && !/\.test\.tsx$/.test(f) && !allowed.some((a) => f.endsWith(a)))
+      .filter((f) => /<(input|select|textarea)[\s>]/.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
   });
 

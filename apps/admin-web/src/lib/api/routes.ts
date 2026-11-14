@@ -12,6 +12,16 @@ export const routes = {
   logout: { id: "EP-006", method: "POST", path: "/auth/logout" },
   /** EP-009 GET /users/me (Authentifié) */
   me: { id: "EP-009", method: "GET", path: "/users/me" },
+  /** EP-021 GET /categories (Public) */
+  categories: { id: "EP-021", method: "GET", path: "/categories" },
+  /** EP-022 GET /categories/{id}/attributes (Public) */
+  categoryAttributes: { id: "EP-022", method: "GET", path: "/categories/{id}/attributes" },
+  /** EP-089 POST /admin/categories (Admin : categories.manage) */
+  createCategory: { id: "EP-089", method: "POST", path: "/admin/categories" },
+  /** EP-090 PATCH /admin/categories/{id} (Admin : categories.manage) */
+  updateCategory: { id: "EP-090", method: "PATCH", path: "/admin/categories/{id}" },
+  /** EP-091 POST /admin/categories/{id}/attributes (Admin : categories.manage) */
+  addAttribute: { id: "EP-091", method: "POST", path: "/admin/categories/{id}/attributes" },
 } as const;
 
 export type Route = (typeof routes)[keyof typeof routes];
