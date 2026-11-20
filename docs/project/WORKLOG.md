@@ -29,3 +29,6 @@ Instance : Claude (conversation, rôle développeur administration), branche `fe
 Fait : page `/categories` (arbre, création, modification et désactivation, caractéristiques) sur les routes EP-021, EP-022, EP-089, EP-090, EP-091 (vérifiées contre le contrat) ; composants `SelectField` et `CheckboxField` en plus de `TextField`, tous avec infobulle d'aide (textes français dans `fr.json`, 10 champs ajoutés) ; serveur factice étendu (409 `DUPLICATE_NAME`, 422 avec `errors[]`, 403 via `MOCK_NO_PERMISSION=1`) ; 25 tests, typecheck et build verts.
 Suit : revue croisée ; branchement au vrai backend à S1-T6 en confrontant OP-17 ; OP-15 et OP-16 toujours ouverts.
 À signaler : aucun changement de contrat. L'interface ne cache rien selon les permissions (OP-16) ; le serveur reste l'autorité (403). Hors zone : `docs/` uniquement (BOARD, WORKLOG, OP-17). Pas de désactivation d'une catégorie « utilisée » côté interface : elle dépend de la réponse 409 du serveur.
+
+## 2026-11-14 : revue de sécurité du front (auto-revue)
+Instance : Claude, sur `feat/fr02-admin-categories`. Rapport : `docs/project/reviews/2026-11-14-front-securite.md` (10 constats, 7 corrigés avec tests, 3 ouverts : OP-16, OP-18). 34 tests, typecheck et build verts. Revue croisée par une autre instance toujours nécessaire.
