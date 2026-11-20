@@ -44,7 +44,8 @@
     "FORBIDDEN": "Vous n'avez pas la permission d'effectuer cette action.",
     "NOT_FOUND": "Élément introuvable.",
     "DUPLICATE_NAME": "Ce nom existe déjà dans cette catégorie parente.",
-    "CATEGORY_IN_USE": "Cette catégorie est utilisée : elle ne peut pas être désactivée."
+    "CATEGORY_IN_USE": "Cette catégorie est utilisée : elle ne peut pas être désactivée.",
+    "CONFIG": "L'application n'est pas configurée correctement (adresse du serveur). Contactez l'administrateur technique."
   },
   "validation": {
     "required": "Ce champ est obligatoire.",

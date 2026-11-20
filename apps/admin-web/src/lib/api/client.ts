@@ -1,4 +1,4 @@
-import { ApiError, NetworkError, type Problem } from "./errors";
+import { ApiError, ConfigError, NetworkError, type Problem } from "./errors";
 import { routes, type Route } from "./routes";
 
 export interface TokenPair {
@@ -64,6 +64,11 @@ type Fetch = typeof fetch;
 
 export interface ApiClientOptions {
   baseUrl: string;
+  /**
+   * Refuse to send anything over a non-HTTPS URL (the contract says HTTPS only).
+   * Defaults to true in production builds; local development may use http.
+   */
+  requireHttps?: boolean;
   fetchImpl?: Fetch;
   /** Called when a refresh fails: the session is over. */
   onSessionLost?: () => void;
@@ -73,11 +78,13 @@ export class ApiClient {
   private tokens: TokenPair | null = null;
   private refreshing: Promise<boolean> | null = null;
   private readonly baseUrl: string;
+  private readonly requireHttps: boolean;
   private readonly fetchImpl: Fetch;
   private readonly onSessionLost?: () => void;
 
   constructor(options: ApiClientOptions) {
     this.baseUrl = options.baseUrl.replace(/\/$/, "");
+    this.requireHttps = options.requireHttps ?? process.env.NODE_ENV === "production";
     this.fetchImpl = options.fetchImpl ?? ((...args) => fetch(...args));
     this.onSessionLost = options.onSessionLost;
   }
@@ -140,6 +147,11 @@ export class ApiClient {
     opts: { body?: unknown; auth?: boolean; retry?: boolean; params?: Record<string, string> } = {},
   ): Promise<T> {
     const { body, auth = false, retry = true, params = {} } = opts;
+    // Fail closed: never send credentials or tokens over plain HTTP or to an unset URL.
+    if (!this.baseUrl || (this.requireHttps && !this.baseUrl.startsWith("https://"))) {
+      throw new ConfigError();
+    }
+    if (auth && !this.tokens) throw new ApiError(401, "UNAUTHENTICATED");
     const path = route.path.replace(/\{(\w+)\}/g, (_, k: string) => encodeURIComponent(params[k] ?? ""));
     const headers: Record<string, string> = { "Accept-Language": "fr" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -164,8 +176,13 @@ export class ApiClient {
     const problem = (await response.json().catch(() => ({}))) as Problem;
     const code = problem.code ?? "UNKNOWN";
 
-    if (auth && retry && response.status === 401 && code === "TOKEN_EXPIRED") {
-      if (await this.refresh()) return this.send<T>(route, { ...opts, retry: false });
+    if (auth && response.status === 401) {
+      if (retry && code === "TOKEN_EXPIRED" && (await this.refresh())) {
+        return this.send<T>(route, { ...opts, retry: false });
+      }
+      // Expired and not renewable, revoked, unknown token, or still 401 after a renewal:
+      // the session is over. Drop the tokens so the UI goes back to the login screen.
+      this.tokens = null;
       this.onSessionLost?.();
     }
 
@@ -201,4 +218,10 @@ export class ApiClient {
   }
 }
 
-export const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4010/api/v1";
+/**
+ * In development the mock server is the default. In production there is no default:
+ * an unset URL makes every request fail closed (ConfigError) instead of falling back to http.
+ */
+export const apiBaseUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL ??
+  (process.env.NODE_ENV === "production" ? "" : "http://localhost:4010/api/v1");

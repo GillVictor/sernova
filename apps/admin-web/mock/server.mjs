@@ -61,7 +61,12 @@ function issue() {
 
 async function readBody(req) {
   const chunks = [];
-  for await (const c of req) chunks.push(c);
+  let size = 0;
+  for await (const c of req) {
+    size += c.length;
+    if (size > 64 * 1024) return {}; // dev mock: ignore oversized bodies
+    chunks.push(c);
+  }
   try { return JSON.parse(Buffer.concat(chunks).toString() || "{}"); } catch { return {}; }
 }
 
@@ -172,4 +177,4 @@ createServer(async (req, res) => {
   }
 
   return problem(res, 404, "NOT_FOUND");
-}).listen(PORT, () => console.log(`Mock API on http://localhost:${PORT}${BASE} (phone ${DEV_PHONE})`));
+}).listen(PORT, "127.0.0.1", () => console.log(`Mock API on http://localhost:${PORT}${BASE} (phone ${DEV_PHONE})`));

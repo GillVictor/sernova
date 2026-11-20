@@ -1,5 +1,5 @@
 import { t, type MessageKey } from "@/i18n";
-import { ApiError, NetworkError } from "./errors";
+import { ApiError, ConfigError, NetworkError } from "./errors";
 
 const known = new Set([
   "INVALID_CREDENTIALS",
@@ -18,6 +18,7 @@ const known = new Set([
 /** Turns an error into a French message. Stable codes only: server texts are never shown. */
 export function errorMessage(error: unknown): string {
   if (error instanceof NetworkError) return t("errors.NETWORK");
+  if (error instanceof ConfigError) return t("errors.CONFIG");
   if (error instanceof ApiError) {
     if (error.code === "RATE_LIMITED" || error.status === 429) {
       return error.retryAfterSeconds

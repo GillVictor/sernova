@@ -106,11 +106,13 @@ describe("ApiClient", () => {
     const client = make(
       vi
         .fn()
+        .mockResolvedValueOnce(json(200, { accessToken: "a", refreshToken: "r" })) // login
         .mockResolvedValueOnce(json(422, { code: "VALIDATION_FAILED", errors: [{ field: "name", code: "REQUIRED" }] }))
         .mockResolvedValueOnce(json(403, { code: "FORBIDDEN" }))
         .mockResolvedValueOnce(json(409, { code: "DUPLICATE_NAME" })),
     );
     const input = { name: "", order: 0, family: "Vente" as const, minVerificationLevel: "N0" as const };
+    await client.login("p", "w");
     const e1 = await client.createCategory(input).catch((e) => e);
     expect(e1.fieldErrors).toEqual([{ field: "name", code: "REQUIRED" }]);
     expect(errorMessage(await client.createCategory(input).catch((e) => e))).toBe(

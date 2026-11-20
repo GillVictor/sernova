@@ -34,3 +34,11 @@ export class NetworkError extends Error {
     this.name = "NetworkError";
   }
 }
+
+/** Raised when the API base URL is missing or not HTTPS in production. */
+export class ConfigError extends Error {
+  constructor() {
+    super("CONFIG");
+    this.name = "ConfigError";
+  }
+}
