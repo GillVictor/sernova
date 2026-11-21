@@ -1,0 +1,233 @@
+{
+  "@@locale": "fr",
+  "appName": "ServNova",
+  "@appName": {
+    "description": "Nom de l'application"
+  },
+  "a11yHelpButton": "Aide sur le champ « {field} »",
+  "@a11yHelpButton": {
+    "description": "Nom accessible du bouton d'aide d'un champ",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "a11yHelpClose": "Appuyez ailleurs pour fermer l'aide",
+  "@a11yHelpClose": {
+    "description": "Indication pour fermer l'infobulle"
+  },
+  "fieldRequired": "Ce champ est obligatoire.",
+  "@fieldRequired": {
+    "description": "Erreur de validation locale"
+  },
+  "fieldOptionalSuffix": "(facultatif)",
+  "@fieldOptionalSuffix": {
+    "description": "Ajouté au libellé d'un champ facultatif"
+  },
+  "registerPhoneLabel": "Numéro de téléphone",
+  "@registerPhoneLabel": {
+    "description": "Libellé du champ (EP-001 phone (E.164, 16 caractères max.))"
+  },
+  "registerPhoneHint": "+242 06 123 45 67",
+  "@registerPhoneHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "registerPhoneHelp": "Saisissez votre numéro avec l'indicatif du pays (ex. +242 pour le Congo). Il servira d'identifiant de connexion et recevra un code de confirmation par SMS. Un numéro ne peut avoir qu'un seul compte.",
+  "@registerPhoneHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "registerPasswordLabel": "Mot de passe",
+  "@registerPasswordLabel": {
+    "description": "Libellé du champ (EP-001 password)"
+  },
+  "registerPasswordHint": "",
+  "@registerPasswordHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "registerPasswordHelp": "Choisissez un mot de passe que vous n'utilisez nulle part ailleurs. Ne le communiquez à personne : ServNova ne vous le demandera jamais.",
+  "@registerPasswordHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "registerDisplayNameLabel": "Nom affiché",
+  "@registerDisplayNameLabel": {
+    "description": "Libellé du champ (EP-001 displayName (60 caractères max.))"
+  },
+  "registerDisplayNameHint": "Ex. Marie K.",
+  "@registerDisplayNameHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "registerDisplayNameHelp": "Ce nom sera visible des autres utilisateurs (60 caractères maximum). N'indiquez pas votre numéro de téléphone ni votre adresse.",
+  "@registerDisplayNameHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "registerEmailLabel": "Adresse e-mail",
+  "@registerEmailLabel": {
+    "description": "Libellé du champ (EP-001 email? (254 caractères max.))"
+  },
+  "registerEmailHint": "nom@exemple.com",
+  "@registerEmailHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "registerEmailHelp": "Facultative. Elle pourra servir à vous envoyer des informations sur votre compte. Elle n'est jamais montrée aux autres utilisateurs.",
+  "@registerEmailHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "registerLanguageLabel": "Langue",
+  "@registerLanguageLabel": {
+    "description": "Libellé du champ (EP-001 language (ISO 639-1))"
+  },
+  "registerLanguageHint": "",
+  "@registerLanguageHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "registerLanguageHelp": "Langue d'affichage de l'application et des notifications. Vous pourrez la changer plus tard dans votre compte.",
+  "@registerLanguageHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "registerCountryCodeLabel": "Pays",
+  "@registerCountryCodeLabel": {
+    "description": "Libellé du champ (EP-001 countryCode)"
+  },
+  "registerCountryCodeHint": "",
+  "@registerCountryCodeHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "registerCountryCodeHelp": "Choisissez le pays où vous utilisez ServNova. Il permet de vous proposer les villes et les offres proches de vous.",
+  "@registerCountryCodeHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "verifyPhoneCodeLabel": "Code reçu par SMS",
+  "@verifyPhoneCodeLabel": {
+    "description": "Libellé du champ (EP-002 code ; EP-003 pour le renvoi)"
+  },
+  "verifyPhoneCodeHint": "",
+  "@verifyPhoneCodeHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "verifyPhoneCodeHelp": "Saisissez le code reçu par SMS sur le numéro indiqué à l'inscription. Il ne peut servir qu'une fois, expire au bout d'un moment et le nombre d'essais est limité. Ne le donnez à personne.",
+  "@verifyPhoneCodeHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "loginPhoneLabel": "Numéro de téléphone",
+  "@loginPhoneLabel": {
+    "description": "Libellé du champ (EP-004 phone)"
+  },
+  "loginPhoneHint": "+242 06 123 45 67",
+  "@loginPhoneHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "loginPhoneHelp": "Saisissez le numéro utilisé à l'inscription, avec l'indicatif du pays.",
+  "@loginPhoneHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "loginPasswordLabel": "Mot de passe",
+  "@loginPasswordLabel": {
+    "description": "Libellé du champ (EP-004 password)"
+  },
+  "loginPasswordHint": "",
+  "@loginPasswordHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "loginPasswordHelp": "Saisissez le mot de passe de votre compte. En cas d'oubli, utilisez « Mot de passe oublié ».",
+  "@loginPasswordHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "forgotPasswordPhoneLabel": "Numéro de téléphone",
+  "@forgotPasswordPhoneLabel": {
+    "description": "Libellé du champ (EP-007 phone)"
+  },
+  "forgotPasswordPhoneHint": "+242 06 123 45 67",
+  "@forgotPasswordPhoneHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "forgotPasswordPhoneHelp": "Saisissez le numéro de votre compte. Si un compte existe, un code de réinitialisation vous sera envoyé par SMS. Pour votre sécurité, la réponse est la même dans tous les cas.",
+  "@forgotPasswordPhoneHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "resetPasswordCodeLabel": "Code reçu par SMS",
+  "@resetPasswordCodeLabel": {
+    "description": "Libellé du champ (EP-008 code)"
+  },
+  "resetPasswordCodeHint": "",
+  "@resetPasswordCodeHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "resetPasswordCodeHelp": "Saisissez le code de réinitialisation reçu par SMS. Il ne peut servir qu'une fois et expire au bout d'un moment.",
+  "@resetPasswordCodeHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "resetPasswordNewPasswordLabel": "Nouveau mot de passe",
+  "@resetPasswordNewPasswordLabel": {
+    "description": "Libellé du champ (EP-008 newPassword)"
+  },
+  "resetPasswordNewPasswordHint": "",
+  "@resetPasswordNewPasswordHint": {
+    "description": "Texte d'exemple dans le champ (vide si aucun)"
+  },
+  "resetPasswordNewPasswordHelp": "Choisissez un nouveau mot de passe. Après la réinitialisation, vous serez déconnecté de tous vos appareils et devrez vous reconnecter.",
+  "@resetPasswordNewPasswordHelp": {
+    "description": "Texte de l'infobulle d'aide"
+  },
+  "errorInvalidCredentials": "Numéro ou mot de passe incorrect.",
+  "@errorInvalidCredentials": {
+    "description": "Erreur INVALID_CREDENTIALS"
+  },
+  "errorAccountSuspended": "Ce compte est suspendu. Contactez le support.",
+  "@errorAccountSuspended": {
+    "description": "Erreur ACCOUNT_SUSPENDED"
+  },
+  "errorPhoneNotVerified": "Le numéro n'est pas encore vérifié. Saisissez le code reçu par SMS.",
+  "@errorPhoneNotVerified": {
+    "description": "Erreur PHONE_NOT_VERIFIED"
+  },
+  "errorPhoneAlreadyUsed": "Ce numéro est déjà utilisé.",
+  "@errorPhoneAlreadyUsed": {
+    "description": "Erreur PHONE_ALREADY_USED"
+  },
+  "errorCodeInvalid": "Code incorrect.",
+  "@errorCodeInvalid": {
+    "description": "Erreur CODE_INVALID"
+  },
+  "errorCodeExpired": "Ce code a expiré. Demandez-en un nouveau.",
+  "@errorCodeExpired": {
+    "description": "Erreur CODE_EXPIRED"
+  },
+  "errorValidationFailed": "Certaines informations sont invalides.",
+  "@errorValidationFailed": {
+    "description": "Erreur VALIDATION_FAILED"
+  },
+  "errorUnauthenticated": "Votre session a expiré. Reconnectez-vous.",
+  "@errorUnauthenticated": {
+    "description": "Erreur UNAUTHENTICATED"
+  },
+  "errorTokenExpired": "Votre session a expiré. Reconnectez-vous.",
+  "@errorTokenExpired": {
+    "description": "Erreur TOKEN_EXPIRED"
+  },
+  "errorTokenRevoked": "Votre session a été fermée. Reconnectez-vous.",
+  "@errorTokenRevoked": {
+    "description": "Erreur TOKEN_REVOKED"
+  },
+  "errorRateLimitedNoDelay": "Trop de tentatives. Réessayez plus tard.",
+  "@errorRateLimitedNoDelay": {
+    "description": "Erreur RATE_LIMITED_NO_DELAY"
+  },
+  "errorNetwork": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+  "@errorNetwork": {
+    "description": "Erreur NETWORK"
+  },
+  "errorUnknown": "Une erreur est survenue. Réessayez.",
+  "@errorUnknown": {
+    "description": "Erreur UNKNOWN"
+  },
+  "errorRateLimited": "Trop de tentatives. Réessayez dans {seconds} secondes.",
+  "@errorRateLimited": {
+    "description": "Erreur RATE_LIMITED avec Retry-After",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  }
+}

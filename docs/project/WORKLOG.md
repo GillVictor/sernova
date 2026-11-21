@@ -17,3 +17,9 @@ Suit : décision sur la visibilité du dépôt (PM-04), liste des villes (OP-09)
 Instance : Claude (conversation, rôle architecte).
 Fait : dix villes du Congo fournies par l'humain, converties en jeu de départ ; deux niveaux de localité (ville, quartier facultatif) ; `villeCle` ajoutée au dictionnaire ; squelette détaillé des modules ; voies de travail parallèles définies (`LANES.md`) avec les tâches P-01 à P-08.
 Suit : pousser la structure dans le dépôt GitHub, lancer S1-T0 (voie A) et les voies E, F, H.
+
+## 2026-11-14 : P-04 partie 1, ressources de texte du mobile
+Instance : Claude (conversation, rôle développeur mobile), branche `feat/p04-mobile-l10n` (issue de `main`, indépendante de `feat/p05-admin-skeleton`).
+Fait : `apps/mobile/lib/l10n/app_fr.arb` (textes d'aide, libellés, exemples et erreurs des écrans EP-001 à EP-008), `l10n.yaml`, contrôleur `tool/check_l10n.mjs` (vert, y compris un cas d'échec vérifié), README d'intégration, passage de relais.
+Suit : une instance avec le SDK Flutter termine P-04 (projet, `HelpTextField`, thème, client d'API, tests).
+À signaler : aucun code Dart écrit ; le SDK Flutter est inutilisable dans l'environnement (domaine du moteur Dart bloqué). Fichiers hors zone modifiés : `docs/` (BOARD, WORKLOG, handoff) et `.github/workflows/ci.yml` (job `mobile-l10n`) ; les deux branches modifient `ci.yml` et `WORKLOG.md` : prévoir un petit conflit à la fusion.

@@ -14,3 +14,12 @@ jobs:
           dotnet restore backend
           dotnet build backend --no-restore -c Release
           dotnet test backend --no-build -c Release
+  mobile-l10n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Contrôle des ressources de texte
+        run: node apps/mobile/tool/check_l10n.mjs
