@@ -1,0 +1,160 @@
+{
+  "app": {
+    "name": "ServNova Administration"
+  },
+  "common": {
+    "helpButtonLabel": "Aide sur le champ « {field} »",
+    "loading": "Chargement…"
+  },
+  "login": {
+    "title": "Connexion à l'administration",
+    "submit": "Se connecter",
+    "submitting": "Connexion en cours…",
+    "fields": {
+      "phone": {
+        "label": "Numéro de téléphone",
+        "placeholder": "+242 06 123 45 67",
+        "help": "Saisissez le numéro utilisé à l'inscription, avec l'indicatif du pays (ex. +242 pour le Congo). C'est votre identifiant de connexion."
+      },
+      "password": {
+        "label": "Mot de passe",
+        "placeholder": "",
+        "help": "Saisissez le mot de passe de votre compte. En cas d'oubli, utilisez la réinitialisation depuis l'application mobile. Ne le communiquez jamais à un tiers."
+      }
+    }
+  },
+  "home": {
+    "title": "Tableau de bord",
+    "welcome": "Connecté en tant que {name}.",
+    "logout": "Se déconnecter",
+    "categories": "Gérer les catégories"
+  },
+  "errors": {
+    "INVALID_CREDENTIALS": "Numéro ou mot de passe incorrect.",
+    "ACCOUNT_SUSPENDED": "Ce compte est suspendu. Contactez un administrateur.",
+    "PHONE_NOT_VERIFIED": "Le numéro n'est pas encore vérifié.",
+    "RATE_LIMITED": "Trop de tentatives. Réessayez dans {seconds} secondes.",
+    "RATE_LIMITED_NO_DELAY": "Trop de tentatives. Réessayez plus tard.",
+    "VALIDATION_FAILED": "Certaines informations sont invalides.",
+    "UNAUTHENTICATED": "Votre session a expiré. Reconnectez-vous.",
+    "TOKEN_EXPIRED": "Votre session a expiré. Reconnectez-vous.",
+    "TOKEN_REVOKED": "Votre session a été fermée. Reconnectez-vous.",
+    "NETWORK": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+    "UNKNOWN": "Une erreur est survenue. Réessayez.",
+    "FORBIDDEN": "Vous n'avez pas la permission d'effectuer cette action.",
+    "NOT_FOUND": "Élément introuvable.",
+    "DUPLICATE_NAME": "Ce nom existe déjà dans cette catégorie parente.",
+    "CATEGORY_IN_USE": "Cette catégorie est utilisée : elle ne peut pas être désactivée.",
+    "CONFIG": "L'application n'est pas configurée correctement (adresse du serveur). Contactez l'administrateur technique."
+  },
+  "validation": {
+    "required": "Ce champ est obligatoire.",
+    "invalid": "Valeur invalide.",
+    "optionsRequired": "Indiquez au moins une valeur pour une liste.",
+    "nameTooLong": "{max} caractères maximum.",
+    "orderInteger": "Saisissez un nombre entier."
+  },
+  "category": {
+    "title": "Catégories",
+    "back": "Retour au tableau de bord",
+    "createTitle": "Nouvelle catégorie",
+    "createSubmit": "Créer la catégorie",
+    "creating": "Création…",
+    "editTitle": "Modifier « {name} »",
+    "saveSubmit": "Enregistrer",
+    "saving": "Enregistrement…",
+    "select": "Sélectionner",
+    "empty": "Aucune catégorie.",
+    "inactive": "désactivée",
+    "rootOption": "Aucune (catégorie racine)",
+    "loadFailed": "Impossible de charger les catégories.",
+    "saved": "Modifications enregistrées.",
+    "created": "Catégorie créée.",
+    "fields": {
+      "name": {
+        "label": "Nom",
+        "placeholder": "Ex. Plomberie",
+        "help": "Nom affiché aux clients et aux prestataires (80 caractères maximum). Il doit être unique parmi les catégories d'un même parent."
+      },
+      "parent": {
+        "label": "Catégorie parente",
+        "placeholder": "",
+        "help": "Laissez « Aucune » pour créer une catégorie racine. Sinon, choisissez la catégorie parente : la nouvelle catégorie héritera de sa famille."
+      },
+      "order": {
+        "label": "Ordre d'affichage",
+        "placeholder": "0",
+        "help": "Nombre entier qui fixe la position dans les listes : les plus petits nombres apparaissent en premier."
+      },
+      "family": {
+        "label": "Famille",
+        "placeholder": "",
+        "help": "Détermine le comportement des offres (domicile, vente, livraison…). À choisir pour une catégorie racine ; une sous-catégorie hérite de la famille de son parent."
+      },
+      "minVerificationLevel": {
+        "label": "Niveau de vérification minimal",
+        "placeholder": "",
+        "help": "Niveau qu'un prestataire doit avoir pour publier une offre ou répondre à une demande dans cette catégorie : N0 non vérifié, N1 téléphone vérifié, N2 identité vérifiée, N3 activité ou qualification vérifiée."
+      },
+      "active": {
+        "label": "Catégorie active",
+        "placeholder": "",
+        "help": "Décochez pour désactiver la catégorie : elle ne sera plus proposée. La désactivation est refusée si la catégorie est encore utilisée."
+      }
+    },
+    "options": {
+      "family": {
+        "Numerique": "Numérique",
+        "Domicile": "À domicile",
+        "Travaux": "Travaux",
+        "Vente": "Vente",
+        "Livraison": "Livraison"
+      },
+      "level": {
+        "N0": "N0 : non vérifié",
+        "N1": "N1 : téléphone vérifié",
+        "N2": "N2 : identité vérifiée",
+        "N3": "N3 : activité ou qualification vérifiée"
+      }
+    }
+  },
+  "attribute": {
+    "title": "Caractéristiques",
+    "addTitle": "Ajouter une caractéristique",
+    "addSubmit": "Ajouter",
+    "adding": "Ajout…",
+    "empty": "Aucune caractéristique pour cette catégorie.",
+    "required": "obligatoire",
+    "added": "Caractéristique ajoutée.",
+    "fields": {
+      "name": {
+        "label": "Nom",
+        "placeholder": "Ex. Marque",
+        "help": "Nom de la caractéristique demandée au prestataire (60 caractères maximum), unique dans la catégorie. Exemples : « Marque », « Surface »."
+      },
+      "valueType": {
+        "label": "Type de valeur",
+        "placeholder": "",
+        "help": "Type de la valeur attendue : texte libre, nombre, oui/non, ou choix dans une liste."
+      },
+      "required": {
+        "label": "Obligatoire",
+        "placeholder": "",
+        "help": "Si coché, le prestataire doit renseigner cette caractéristique pour publier son offre."
+      },
+      "options": {
+        "label": "Valeurs possibles",
+        "placeholder": "Ex. Neuf, Occasion",
+        "help": "Uniquement pour le type Liste : saisissez les valeurs proposées, séparées par des virgules (500 caractères maximum au total)."
+      }
+    },
+    "options": {
+      "valueType": {
+        "Texte": "Texte",
+        "Nombre": "Nombre",
+        "Booleen": "Oui / non",
+        "Liste": "Liste"
+      }
+    }
+  }
+}
