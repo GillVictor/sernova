@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AddAttributeForm, CreateCategoryForm, EditCategoryForm, flatten } from "@/components/CategoryForms";
 import { t } from "@/i18n";
-import type { AttributeDefinition, Category } from "@/lib/api/client";
+import type { Category } from "@/lib/api/client";
 import { errorMessage } from "@/lib/api/messages";
+import { useCategoryAttributes } from "@/lib/useCategoryAttributes";
 import { useSession } from "@/lib/session";
 
 function Tree({ nodes, selectedId, onSelect }: { nodes: Category[]; selectedId?: string; onSelect: (c: Category) => void }) {
@@ -32,7 +33,6 @@ export default function CategoriesPage() {
   const router = useRouter();
   const [tree, setTree] = useState<Category[] | null>(null);
   const [selectedId, setSelectedId] = useState<string>();
-  const [attributes, setAttributes] = useState<AttributeDefinition[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -53,13 +53,9 @@ export default function CategoriesPage() {
     void reload();
   }, [authenticated, reload, router]);
 
-  useEffect(() => {
-    if (!selectedId) return;
-    client
-      .categoryAttributes(selectedId) // EP-022
-      .then(setAttributes)
-      .catch((e) => setError(errorMessage(e)));
-  }, [client, selectedId]);
+  // EP-022
+  const { attributes, error: attributesError, loading: attributesLoading, reload: reloadAttributes } =
+    useCategoryAttributes(client, selectedId);
 
   if (!authenticated) return null;
 
@@ -78,7 +74,10 @@ export default function CategoriesPage() {
         ) : tree.length === 0 ? (
           <p>{t("category.empty")}</p>
         ) : (
-          <Tree nodes={tree} selectedId={selectedId} onSelect={(c) => setSelectedId(c.id)} />
+          <Tree nodes={tree} selectedId={selectedId} onSelect={(c) => {
+              setNotice(null);
+              setSelectedId(c.id);
+            }} />
         )}
       </section>
 
@@ -86,6 +85,7 @@ export default function CategoriesPage() {
         <CreateCategoryForm
           tree={tree ?? []}
           onCreate={async (input) => {
+            setNotice(null);
             await client.createCategory(input); // EP-089
             setNotice(t("category.created"));
             await reload();
@@ -99,15 +99,19 @@ export default function CategoriesPage() {
             key={`${selected.id}-${selected.name}-${selected.order}-${selected.active}-${selected.minVerificationLevel}`}
             category={selected}
             onSave={async (id, input) => {
+              setNotice(null);
               await client.updateCategory(id, input); // EP-090
               setNotice(t("category.saved"));
               await reload();
             }}
           />
           <h2>{t("attribute.title")}</h2>
-          {attributes.length === 0 ? (
+          {attributesError && <p className="field__error" role="alert">{attributesError}</p>}
+          {attributesLoading ? (
+            <p className="muted">{t("common.loading")}</p>
+          ) : attributes.length === 0 && !attributesError ? (
             <p className="muted">{t("attribute.empty")}</p>
-          ) : (
+          ) : attributes.length === 0 ? null : (
             <ul>
               {attributes.map((a) => (
                 <li key={a.id}>
@@ -118,9 +122,10 @@ export default function CategoriesPage() {
           )}
           <AddAttributeForm
             onAdd={async (input) => {
+              setNotice(null);
               await client.addAttribute(selected.id, input); // EP-091
               setNotice(t("attribute.added"));
-              setAttributes(await client.categoryAttributes(selected.id));
+              reloadAttributes();
             }}
           />
         </section>

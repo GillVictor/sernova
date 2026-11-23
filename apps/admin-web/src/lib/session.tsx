@@ -12,11 +12,18 @@ interface Session {
 
 const SessionContext = createContext<Session | null>(null);
 
-export function SessionProvider({ children }: { children: ReactNode }) {
-  const [authenticated, setAuthenticated] = useState(false);
+interface SessionProviderProps {
+  children: ReactNode;
+  /** Tests only: a ready-made client and an already open session. */
+  client?: ApiClient;
+  initialAuthenticated?: boolean;
+}
+
+export function SessionProvider({ children, client: injected, initialAuthenticated = false }: SessionProviderProps) {
+  const [authenticated, setAuthenticated] = useState(initialAuthenticated);
   const client = useMemo(
-    () => new ApiClient({ baseUrl: apiBaseUrl, onSessionLost: () => setAuthenticated(false) }),
-    [],
+    () => injected ?? new ApiClient({ baseUrl: apiBaseUrl, onSessionLost: () => setAuthenticated(false) }),
+    [injected],
   );
   const value = useMemo(() => ({ client, authenticated, setAuthenticated }), [client, authenticated]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
