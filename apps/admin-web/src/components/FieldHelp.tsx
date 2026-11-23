@@ -11,23 +11,26 @@ interface FieldHelpProps {
 }
 
 /**
- * Help tooltip for an input. Opens on hover, focus or click/tap (touch),
- * closes on Escape or outside click. Reachable by keyboard and screen reader.
+ * Help tooltip for an input. Opens on hover, focus or click/tap (touch).
+ * Escape dismisses it even while the pointer or the keyboard focus stays on the button
+ * (WCAG 1.4.13): it comes back only on a new hover, focus or click. A click outside also
+ * closes it. Reachable by keyboard and screen reader.
  */
 export function FieldHelp({ fieldLabel, text }: FieldHelpProps) {
   const [pinned, setPinned] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   const tooltipId = useId();
   const root = useRef<HTMLSpanElement>(null);
-  const open = pinned || hovered || focused;
+  const open = !dismissed && (pinned || hovered || focused);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setPinned(false);
-        setHovered(false);
+        setDismissed(true);
       }
     };
     const onPointer = (e: PointerEvent) => {
@@ -45,7 +48,10 @@ export function FieldHelp({ fieldLabel, text }: FieldHelpProps) {
     <span
       ref={root}
       className="field-help"
-      onMouseEnter={() => setHovered(true)}
+      onMouseEnter={() => {
+        setDismissed(false);
+        setHovered(true);
+      }}
       onMouseLeave={() => setHovered(false)}
     >
       <button
@@ -54,8 +60,14 @@ export function FieldHelp({ fieldLabel, text }: FieldHelpProps) {
         aria-label={t("common.helpButtonLabel", { field: fieldLabel })}
         aria-describedby={open ? tooltipId : undefined}
         aria-expanded={open}
-        onClick={() => setPinned((p) => !p)}
-        onFocus={() => setFocused(true)}
+        onClick={() => {
+          setDismissed(false);
+          setPinned((p) => !p);
+        }}
+        onFocus={() => {
+          setDismissed(false);
+          setFocused(true);
+        }}
         onBlur={() => setFocused(false)}
       >
         ?

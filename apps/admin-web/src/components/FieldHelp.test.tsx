@@ -5,7 +5,7 @@ import { TextField } from "./TextField";
 import { messages } from "@/i18n";
 
 describe("help tooltip on every input", () => {
-  it("shows the French help on focus and hides it on Escape", async () => {
+  it("shows the French help on keyboard focus and hides it when focus leaves", async () => {
     const user = userEvent.setup();
     render(<TextField form="login" name="phone" />);
     expect(screen.queryByRole("tooltip")).toBeNull();
@@ -13,9 +13,37 @@ describe("help tooltip on every input", () => {
     await user.tab(); // the help button comes first in the tab order (label row)
     expect(screen.getByRole("tooltip")).toHaveTextContent(messages.login.fields.phone.help);
 
-    await user.keyboard("{Escape}");
-    // still focused: tooltip stays available through focus, so blur to close it
+    await user.tab(); // focus moves to the input
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("Escape dismisses the tooltip while focus stays on the button (WCAG 1.4.13)", async () => {
+    const user = userEvent.setup();
+    render(<TextField form="login" name="phone" />);
     await user.tab();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    expect(screen.getByRole("button", { name: /Aide sur le champ/ })).toHaveFocus();
+  });
+
+  it("reopens after Escape when focus leaves and comes back", async () => {
+    const user = userEvent.setup();
+    render(<TextField form="login" name="phone" />);
+    await user.tab();
+    await user.keyboard("{Escape}");
+    await user.tab(); // to the input
+    await user.tab({ shift: true }); // back to the button
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+  });
+
+  it("Escape also closes a tooltip opened by a click", async () => {
+    const user = userEvent.setup();
+    render(<TextField form="login" name="phone" />);
+    await user.click(screen.getByRole("button", { name: /Aide sur le champ/ }));
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
