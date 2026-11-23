@@ -32,3 +32,9 @@ Suit : revue croisée ; branchement au vrai backend à S1-T6 en confrontant OP-1
 
 ## 2026-11-14 : revue de sécurité du front (auto-revue)
 Instance : Claude, sur `feat/fr02-admin-categories`. Rapport : `docs/project/reviews/2026-11-14-front-securite.md` (10 constats, 7 corrigés avec tests, 3 ouverts : OP-16, OP-18). 34 tests, typecheck et build verts. Revue croisée par une autre instance toujours nécessaire.
+
+## 2026-11-23 : FW-01 corrections de la revue de l'admin web
+Instance : Claude (rôle développeur administration), branche `fix/fw01-admin-review` (issue de `main` après la fusion de la PR n°3).
+Fait (tests écrits d'abord, vérifiés en échec puis en succès) : l'infobulle se ferme avec Échap même quand le focus reste sur le bouton, et reste accessible à la souris (WCAG 1.4.13) ; chargement des caractéristiques sans course entre catégories ni affichage de la liste de la catégorie précédente (hook `useCategoryAttributes`) ; le message de succès disparaît quand on change d'action ; `next-env.d.ts` n'est plus suivi (`typecheck` le régénère avec `next typegen`) ; `engines` et `.nvmrc` (Node 22.13 ou plus), `jsdom` 29 compatible avec Node 24.13 ; serveur factice sur les deux adresses locales (correctif `0f5b034`). 46 tests, typecheck, build et `npm audit` verts.
+Suit : revue croisée ; OP-21 (catégories désactivées) à trancher avant S1-T6 ; les statuts de P-05 et FR-02, fusionnées, restent « En revue » dans `BOARD.md` : à passer à « Terminé » par l'humain.
+À signaler : aucun changement de contrat ; OP-21 propose un ajout. Le mobile n'est pas touché. Hors zone : `docs/` seulement.
