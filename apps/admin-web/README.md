@@ -2,6 +2,9 @@
 
 Squelette de la console d'administration (tâche P-05, voie F). Consomme uniquement les routes de `docs/reference/api-contract.xlsx` ; la liste des routes utilisées est dans `src/lib/api/routes.ts` (EP-004, EP-005, EP-006, EP-009, EP-021, EP-022, EP-089, EP-090, EP-091).
 
+## Prérequis
+Node `^22.13`, `^24` ou `>=26` (voir `engines` dans `package.json` et `.nvmrc`). Avec une version plus ancienne, `npm install` affiche un avertissement `EBADENGINE` et les tests peuvent échouer.
+
 ## Démarrer
 ```bash
 cd apps/admin-web
@@ -19,6 +22,8 @@ Identifiants du serveur factice (fictifs) : téléphone `+242060000000`, mot de 
 
 ## Vérifier
 `npm run typecheck && npm test && npm run build`
+
+`typecheck` génère d'abord `next-env.d.ts` (`next typegen`) : ce fichier n'est plus suivi par Git, Next.js le réécrit à chaque `next dev`.
 
 ## Infobulles d'aide
 - Les textes sont dans `src/i18n/fr.json` (`<formulaire>.fields.<champ>.{label,placeholder,help}`).
