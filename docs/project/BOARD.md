@@ -9,6 +9,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 | PM-02 | Trancher les points ouverts OP-01 à OP-14 | | Terminé | Humain + architecte | |
 | PM-03 | Ajouter CodeSms au dictionnaire et la route de contenu signé au contrat (OP-12, OP-13) | PM-02 | Terminé | Architecte | |
 | PM-04 | Dépôt GitHub créé (https://github.com/gkoanga-design/servnova) ; décider de sa visibilité, protéger la branche principale, activer la CI | | En cours | Humain | |
+| PM-06 | Arbitrer OP-15 à OP-17 et les catégories désactivées (D32 à D35) ; PR docs : contrat (EP-009, EP-089, EP-091, EP-115), dictionnaire, décisions, points ouverts | | En revue | Claude (développeur backend) | docs/op-15-17-29-arbitrage |
 | PM-05 | Adapter les maquettes du prestataire à Flutter (OP-11, D26) | PM-02 | À faire | Humain + architecte | |
 
 ## Tranche S1 : socle (voir `docs/plan-S1.md`)

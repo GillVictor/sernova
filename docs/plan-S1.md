@@ -1,6 +1,6 @@
 # Plan de la tranche S1 : socle
 
-Objectif : un backend démarrable, sécurisé, avec comptes, profils prestataires, référentiels, fichiers et administration de base. 34 points d'accès (EP-001 à EP-025, EP-082, EP-089 à EP-092, EP-094, EP-095, EP-113, EP-114). Suivre l'ordre ci-dessous ; chaque tâche se termine par `dotnet test` vert et un commit.
+Objectif : un backend démarrable, sécurisé, avec comptes, profils prestataires, référentiels, fichiers et administration de base. 35 points d'accès (EP-001 à EP-025, EP-082, EP-089 à EP-092, EP-115, EP-094, EP-095, EP-113, EP-114). Suivre l'ordre ci-dessous ; chaque tâche se termine par `dotnet test` vert et un commit.
 
 ## T0 Initialisation (EP-113)
 Créer la solution : `dotnet new sln -n ServNova -o backend`, projet `ServNova.Api` (web API avec contrôleurs), `ServNova.SharedKernel`, un projet de bibliothèque par module sous `backend/src/Modules/`, projets de tests dans `backend/tests` (xUnit). Paquets : Npgsql.EntityFrameworkCore.PostgreSQL, FluentValidation, Serilog.AspNetCore, Microsoft.AspNetCore.Authentication.JwtBearer, Testcontainers.PostgreSql, Microsoft.AspNetCore.Mvc.Testing. Mettre en place : route `GET /api/v1/health`, middleware `problem+json` avec `code` et `traceId`, limitation de débit, OpenAPI, Serilog, CORS, lecture de la configuration par variables d'environnement.
@@ -26,7 +26,7 @@ Critères : un utilisateur n'accède qu'à son compte ; e-mail déjà utilisé r
 Tables Permission, UtilisateurPermission, JournalAction. Politique d'autorisation par permission (10 codes du contrat). Premier administrateur créé par configuration ou commande, pas par une route.
 Critères : sans la permission, 403 ; toute modification de permissions est journalisée ; `JournalAction` n'a ni mise à jour ni suppression.
 
-## T6 Catégories et attributs (EP-021, EP-022, EP-089 à EP-091)
+## T6 Catégories et attributs (EP-021, EP-022, EP-089 à EP-091, EP-115)
 Tables Categorie, DefinitionAttribut. Arbre en lecture publique (mis en cache), création et modification par un administrateur, famille héritée du parent. Données de départ : cinq familles racines (numérique, domicile, travaux, vente, livraison) et quelques sous-catégories.
 Critères : une catégorie utilisée ne peut pas être supprimée (409) ; le nom est unique sous un même parent.
 
