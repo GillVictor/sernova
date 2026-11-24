@@ -16,6 +16,8 @@ export const routes = {
   categories: { id: "EP-021", method: "GET", path: "/categories" },
   /** EP-022 GET /categories/{id}/attributes (Public) */
   categoryAttributes: { id: "EP-022", method: "GET", path: "/categories/{id}/attributes" },
+  /** EP-115 GET /admin/categories (Admin : categories.manage), whole tree with `active` (D35) */
+  allCategories: { id: "EP-115", method: "GET", path: "/admin/categories" },
   /** EP-089 POST /admin/categories (Admin : categories.manage) */
   createCategory: { id: "EP-089", method: "POST", path: "/admin/categories" },
   /** EP-090 PATCH /admin/categories/{id} (Admin : categories.manage) */

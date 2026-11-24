@@ -39,7 +39,7 @@ function CategoriesScreen() {
 
   const reload = useCallback(async () => {
     try {
-      setTree(await client.listCategories()); // EP-021
+      setTree(await client.listAllCategories()); // EP-115 (inactive included, D35)
       setError(null);
     } catch (e) {
       setError(errorMessage(e));

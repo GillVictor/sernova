@@ -1,7 +1,7 @@
 // Mock ServNova API for local development (no dependency).
 // Implements only the contract routes used by apps/admin-web:
 // EP-004 login, EP-005 refresh, EP-006 logout, EP-009 users/me,
-// EP-021/022 categories and attributes, EP-089/090/091 admin category routes.
+// EP-021/022 categories and attributes, EP-089/090/091 and EP-115 admin category routes.
 // Set MOCK_NO_PERMISSION=1 to make the admin routes answer 403 FORBIDDEN.
 // Dev credentials are fake and local to this file.
 import { createServer } from "node:http";
@@ -28,11 +28,11 @@ const roots = Object.fromEntries(
 addCategory({ parentId: roots.Domicile.id, name: "Plomberie", order: 1 });
 addCategory({ parentId: roots.Domicile.id, name: "Ménage", order: 2 });
 addCategory({ parentId: roots.Vente.id, name: "Téléphones", order: 1 });
-function tree(parentId = null) {
+function tree(parentId = null, includeInactive = false) {
   return categories
-    .filter((c) => c.parentId === parentId && c.active)
+    .filter((c) => c.parentId === parentId && (includeInactive || c.active))
     .sort((a, b) => a.order - b.order)
-    .map(({ parentId: _p, ...c }) => ({ ...c, children: tree(c.id) }));
+    .map(({ parentId: _p, ...c }) => ({ ...c, children: tree(c.id, includeInactive) }));
 }
 const FAMILIES = ["Numerique", "Domicile", "Travaux", "Vente", "Livraison"];
 const LEVELS = ["N0", "N1", "N2", "N3"];
@@ -126,6 +126,9 @@ const handler = async (req, res) => {
     if (process.env.MOCK_NO_PERMISSION === "1") return problem(res, 403, "FORBIDDEN");
     const fieldErrors = (list) => list.filter(Boolean).map(([field, code]) => ({ field, code }));
     const invalid = (list) => problem(res, 422, "VALIDATION_FAILED", { errors: fieldErrors(list) });
+
+    // EP-115: whole tree, inactive categories included (D35)
+    if (route === `GET ${BASE}/admin/categories`) return json(res, 200, tree(null, true));
 
     if (route === `POST ${BASE}/admin/categories`) {
       const b = await readBody(req);

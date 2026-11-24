@@ -123,6 +123,11 @@ export class ApiClient {
     return this.send<Category[]>(routes.categories);
   }
 
+  // EP-115 (D35): admin tree with inactive categories; EP-021 stays public and active-only
+  listAllCategories(): Promise<Category[]> {
+    return this.send<Category[]>(routes.allCategories, { auth: true });
+  }
+
   // EP-022
   categoryAttributes(categoryId: string): Promise<AttributeDefinition[]> {
     return this.send<AttributeDefinition[]>(routes.categoryAttributes, { params: { id: categoryId } });

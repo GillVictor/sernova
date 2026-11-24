@@ -152,3 +152,36 @@ describe("ApiClient.me (EP-009, D33)", () => {
     expect((await client.me()).permissions).toEqual(["journal.read"]);
   });
 });
+
+describe("ApiClient.listAllCategories (EP-115, D35)", () => {
+  it("reads the full tree, inactive ones included, with the access token", async () => {
+    const tree = [{ id: "c1", name: "Domicile", order: 0, active: false, family: "Domicile", minVerificationLevel: "N0", children: [] }];
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(json(200, { accessToken: "a", refreshToken: "r" }))
+      .mockResolvedValueOnce(json(200, tree));
+    const client = make(fetchImpl);
+    await client.login("p", "w");
+
+    await expect(client.listAllCategories()).resolves.toEqual(tree);
+    const [url, init] = fetchImpl.mock.calls[1] as [string, RequestInit];
+    expect(`${init.method} ${url}`).toBe("GET http://api/api/v1/admin/categories");
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer a");
+  });
+
+  it("refuses without a session and without calling the network (admin route)", async () => {
+    const fetchImpl = vi.fn();
+    await expect(make(fetchImpl).listAllCategories()).rejects.toMatchObject({ code: "UNAUTHENTICATED" });
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("keeps the stable 403 code when the permission is missing", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(json(200, { accessToken: "a", refreshToken: "r" }))
+      .mockResolvedValueOnce(json(403, { code: "FORBIDDEN" }));
+    const client = make(fetchImpl);
+    await client.login("p", "w");
+    await expect(client.listAllCategories()).rejects.toMatchObject({ status: 403, code: "FORBIDDEN" });
+  });
+});
