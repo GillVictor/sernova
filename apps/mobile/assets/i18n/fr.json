@@ -30,7 +30,10 @@
     "ACTIVE_LOCATION_EMPTY": "L'adresse active du profil n'est pas renseignée.",
     "PROFILE_NOT_FOUND": "Aucun profil prestataire n'est associé à ce compte.",
     "TOKEN_EXPIRED": "Votre session a expiré. Reconnectez-vous.",
-    "TOKEN_REVOKED": "Votre session a expiré. Reconnectez-vous."
+    "TOKEN_REVOKED": "Votre session a expiré. Reconnectez-vous.",
+    "INVALID_CREDENTIALS": "Numéro ou mot de passe incorrect.",
+    "ACCOUNT_SUSPENDED": "Ce compte est suspendu. Contactez le support.",
+    "PHONE_NOT_VERIFIED": "Votre numéro de téléphone n'est pas encore vérifié."
   },
   "search": {
     "title": "Rechercher une offre",
@@ -255,6 +258,31 @@
     "comingSoon": {
       "title": "Bientôt disponible",
       "subtitle": "Cette page sera ajoutée dans une prochaine version."
+    },
+    "logout": "Se déconnecter"
+  },
+  "auth": {
+    "login": {
+      "title": "Connexion",
+      "subtitle": "Connectez-vous pour accéder à votre compte.",
+      "fields": {
+        "phone": {
+          "label": "Numéro de téléphone",
+          "placeholder": "Votre numéro de téléphone",
+          "help": "Le numéro de téléphone utilisé pour créer votre compte."
+        },
+        "password": {
+          "label": "Mot de passe",
+          "help": "Le mot de passe de votre compte. Il n'est pas conservé dans l'application.",
+          "show": "Afficher le mot de passe",
+          "hide": "Masquer le mot de passe"
+        }
+      },
+      "validation": {
+        "phoneRequired": "Saisissez votre numéro de téléphone.",
+        "passwordRequired": "Saisissez votre mot de passe."
+      },
+      "submit": "Se connecter"
     }
   }
 }

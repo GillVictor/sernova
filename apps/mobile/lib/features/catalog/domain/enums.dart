@@ -1,5 +1,5 @@
-/// Enumerations from docs/reference/data-dictionary.xlsx. The contract says
-/// clients must tolerate unknown values, so each parser falls back to `unknown`.
+// Enumerations from docs/reference/data-dictionary.xlsx. The contract says
+// clients must tolerate unknown values, so each parser falls back to `unknown`.
 
 enum PricingMode {
   fixed,
