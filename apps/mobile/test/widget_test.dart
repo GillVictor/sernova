@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:servnova_mobile/core/l10n/strings.dart';
 import 'package:servnova_mobile/main.dart';
