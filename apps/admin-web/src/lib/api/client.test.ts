@@ -43,7 +43,7 @@ describe("ApiClient", () => {
       .mockResolvedValueOnce(json(200, { user: { displayName: "Ada" } })); // me retry
     const client = make(fetchImpl);
     await client.login("p", "w");
-    await expect(client.me()).resolves.toEqual({ user: { displayName: "Ada" } });
+    await expect(client.me()).resolves.toEqual({ user: { displayName: "Ada" }, permissions: [] });
     const retryHeaders = (fetchImpl.mock.calls[3][1] as RequestInit).headers as Record<string, string>;
     expect(retryHeaders.Authorization).toBe("Bearer a2");
   });
@@ -121,5 +121,34 @@ describe("ApiClient", () => {
     expect(errorMessage(await client.createCategory(input).catch((e) => e))).toBe(
       "Ce nom existe déjà dans cette catégorie parente.",
     );
+  });
+});
+
+describe("ApiClient.me (EP-009, D33)", () => {
+  const loggedIn = async (meBody: unknown) => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(json(200, { accessToken: "a", refreshToken: "r" }))
+      .mockResolvedValueOnce(json(200, meBody));
+    const client = make(fetchImpl);
+    await client.login("+242060000000", "pw");
+    return client;
+  };
+
+  it("returns permissions[] as a list of codes", async () => {
+    const client = await loggedIn({ user: { displayName: "A" }, capacities: ["Client"], providerStatus: null, permissions: ["categories.manage"] });
+    expect((await client.me()).permissions).toEqual(["categories.manage"]);
+  });
+
+  it("falls back to an empty list when permissions is absent or malformed", async () => {
+    for (const permissions of [undefined, null, "categories.manage"]) {
+      const client = await loggedIn({ user: {}, permissions });
+      expect((await client.me()).permissions).toEqual([]);
+    }
+  });
+
+  it("keeps only the string codes of a mixed list", async () => {
+    const client = await loggedIn({ user: {}, permissions: [1, null, "journal.read"] });
+    expect((await client.me()).permissions).toEqual(["journal.read"]);
   });
 });

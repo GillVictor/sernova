@@ -10,6 +10,8 @@ export interface CurrentUser {
   user: { displayName?: string } & Record<string, unknown>;
   capacities?: unknown;
   providerStatus?: unknown;
+  /** EP-009 (D33): codes of the caller's admin permissions; empty for a non-admin. */
+  permissions: string[];
 }
 
 /**
@@ -109,8 +111,11 @@ export class ApiClient {
   }
 
   // EP-009
-  me(): Promise<CurrentUser> {
-    return this.send<CurrentUser>(routes.me, { auth: true });
+  async me(): Promise<CurrentUser> {
+    const body = await this.send<Omit<CurrentUser, "permissions"> & { permissions?: unknown }>(routes.me, { auth: true });
+    // Tolerate an absent or malformed list: nothing is granted by default.
+    const permissions = Array.isArray(body.permissions) ? body.permissions.filter((p): p is string => typeof p === "string") : [];
+    return { ...body, permissions };
   }
 
   // EP-021

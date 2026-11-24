@@ -108,7 +108,7 @@ const handler = async (req, res) => {
 
   if (route === `GET ${BASE}/users/me`) {
     if (!accessTokens.has((req.headers.authorization ?? "").replace("Bearer ", ""))) return problem(res, 401, "UNAUTHENTICATED");
-    return json(res, 200, { user: { displayName: "Admin de démonstration" }, capacities: ["Client"], providerStatus: null });
+    return json(res, 200, { user: { displayName: "Admin de démonstration" }, capacities: ["Client"], providerStatus: null, permissions: process.env.MOCK_NO_PERMISSION === "1" ? [] : ["categories.manage"] });
   }
 
   // --- Categories (EP-021, EP-022: public) ---

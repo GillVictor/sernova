@@ -29,6 +29,10 @@
     "logout": "Se déconnecter",
     "categories": "Gérer les catégories"
   },
+  "permissions": {
+    "loading": "Vérification de vos droits…",
+    "denied": "Vous n'avez pas la permission de gérer les catégories."
+  },
   "errors": {
     "INVALID_CREDENTIALS": "Numéro ou mot de passe incorrect.",
     "ACCOUNT_SUSPENDED": "Ce compte est suspendu. Contactez un administrateur.",
