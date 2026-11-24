@@ -70,7 +70,7 @@ async function readBody(req) {
   try { return JSON.parse(Buffer.concat(chunks).toString() || "{}"); } catch { return {}; }
 }
 
-createServer(async (req, res) => {
+const handler = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept-Language");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
@@ -177,4 +177,21 @@ createServer(async (req, res) => {
   }
 
   return problem(res, 404, "NOT_FOUND");
-}).listen(PORT, "127.0.0.1", () => console.log(`Mock API on http://localhost:${PORT}${BASE} (phone ${DEV_PHONE})`));
+};
+
+// Listen on both loopback addresses (never on the network): on Windows, "localhost" may
+// resolve to ::1 first, and a server bound to 127.0.0.1 only would look unreachable.
+const servers = [["127.0.0.1", true], ["::1", false]];
+for (const [host, required] of servers) {
+  const server = createServer(handler);
+  server.on("error", (error) => {
+    if (required) {
+      console.error(`Cannot start the mock server on ${host}:${PORT}: ${error.code ?? error.message}`);
+      process.exit(1);
+    }
+    // IPv6 loopback not available on this machine: IPv4 alone is enough.
+  });
+  server.listen(PORT, host, () => {
+    if (required) console.log(`Mock API on http://localhost:${PORT}${BASE} and http://127.0.0.1:${PORT}${BASE} (phone ${DEV_PHONE})`);
+  });
+}

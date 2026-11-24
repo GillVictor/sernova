@@ -1,0 +1,260 @@
+{
+  "app": {
+    "name": "ServNova",
+    "mapPlaceholder": "Carte"
+  },
+  "common": {
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "back": "Retour",
+    "helpButtonLabel": "Aide : {field}",
+    "loading": "Chargement…"
+  },
+  "nav": {
+    "home": "Accueil",
+    "requests": "Demandes",
+    "orders": "Commandes",
+    "account": "Compte",
+    "offers": "Mes offres"
+  },
+  "errors": {
+    "NETWORK": "Impossible de joindre le serveur. Vérifiez votre connexion.",
+    "UNKNOWN": "Une erreur est survenue. Réessayez.",
+    "CONFIG": "L'application n'est pas configurée correctement (adresse du serveur). Contactez l'administrateur technique.",
+    "VALIDATION_FAILED": "Certaines informations sont invalides.",
+    "RATE_LIMITED": "Trop de requêtes. Réessayez dans {seconds} secondes.",
+    "RATE_LIMITED_NO_DELAY": "Trop de requêtes. Réessayez plus tard.",
+    "NOT_FOUND": "Élément introuvable.",
+    "UNAUTHENTICATED": "Votre session a expiré. Reconnectez-vous.",
+    "FORBIDDEN": "Vous n'avez pas la permission d'effectuer cette action.",
+    "ACTIVE_LOCATION_EMPTY": "L'adresse active du profil n'est pas renseignée.",
+    "PROFILE_NOT_FOUND": "Aucun profil prestataire n'est associé à ce compte.",
+    "TOKEN_EXPIRED": "Votre session a expiré. Reconnectez-vous.",
+    "TOKEN_REVOKED": "Votre session a expiré. Reconnectez-vous."
+  },
+  "search": {
+    "title": "Rechercher une offre",
+    "fields": {
+      "query": {
+        "label": "Recherche",
+        "placeholder": "Rechercher un service...",
+        "help": "Tapez un métier ou un service (ex. plombier, site web, ménage). Les résultats se mettent à jour pendant la saisie.",
+        "clear": "Effacer la recherche"
+      },
+      "category": {
+        "label": "Toutes les catégories",
+        "sheetTitle": "Catégorie",
+        "all": "Toutes les catégories",
+        "help": "Limite les résultats à un domaine (ex. Plomberie). Choisissez « Toutes les catégories » pour retirer le filtre."
+      },
+      "location": {
+        "label": "Localité",
+        "sheetTitle": "Localité",
+        "all": "Toutes les localités",
+        "placeholder": "Saisir une ville ou un quartier",
+        "help": "Ville ou quartier où vous souhaitez trouver des prestataires. Choisir une localité permet aussi de trier par distance.",
+        "searchHelp": "Tapez les premières lettres d'une ville ou d'un quartier ; les suggestions s'affichent en dessous.",
+        "empty": "Aucune localité trouvée."
+      },
+      "sort": {
+        "label": "Trier",
+        "sheetTitle": "Trier les résultats",
+        "help": "Choisit l'ordre d'affichage : meilleures notes, prix ou distance. Le tri par distance demande de choisir une localité.",
+        "relevance": "Pertinence",
+        "rating": "Meilleures notes",
+        "price": "Prix",
+        "distance": "Distance",
+        "distanceNeedsLocation": "Choisissez d'abord une localité."
+      }
+    },
+    "offer": {
+      "verified": "Vérifié",
+      "reviews": "{count} avis",
+      "noReviews": "Pas encore d'avis",
+      "pricing": {
+        "fixed": "Prix",
+        "hourly": "Tarif horaire",
+        "onQuote": "Sur devis",
+        "unknown": "Prix"
+      },
+      "perHour": "/ h",
+      "away": "à {km} km",
+      "noPhoto": "Aucune photo"
+    },
+    "empty": {
+      "title": "Aucune offre ne correspond",
+      "subtitle": "Modifiez vos filtres ou décrivez votre besoin : les prestataires concernés pourront vous répondre.",
+      "publishNeed": "Publier un besoin",
+      "clearFilters": "Effacer les filtres"
+    },
+    "error": {
+      "title": "Recherche impossible",
+      "loadMore": "Impossible de charger la suite."
+    },
+    "map": "Voir la carte"
+  },
+  "detail": {
+    "description": "Description",
+    "provider": "Prestataire",
+    "viewProfile": "Voir le profil",
+    "order": "Commander cette offre",
+    "completion": "{percent}% de prestations achevées",
+    "items": "Articles",
+    "itemUnavailable": "Indisponible",
+    "readMore": "Voir plus",
+    "readLess": "Voir moins",
+    "photoCounter": "{current} / {total}",
+    "modality": {
+      "remote": "À distance",
+      "atHome": "À domicile",
+      "onSite": "Chez le prestataire"
+    },
+    "notFound": {
+      "title": "Offre introuvable",
+      "subtitle": "Cette offre n'est plus disponible ou a été retirée."
+    },
+    "error": {
+      "title": "Chargement impossible"
+    }
+  },
+  "time": {
+    "now": "à l'instant",
+    "minutes": "il y a {n} min",
+    "hours": "il y a {n} h",
+    "days": "il y a {n} j"
+  },
+  "provider": {
+    "space": "Espace Prestataire",
+    "roleChip": "{name} · Prestataire",
+    "roleChipNoName": "Prestataire",
+    "bell": "Notifications ({n} non lues)",
+    "avatar": "Mon profil professionnel",
+    "dashboard": {
+      "title": "Tableau de bord",
+      "subtitle": "Vue globale de votre activité",
+      "stats": {
+        "inProgress": {
+          "label": "Commandes en cours",
+          "tag": "Actif"
+        },
+        "available": {
+          "label": "Demandes disponibles",
+          "tag": "Nouveau"
+        },
+        "completion": {
+          "label": "Prestations achevées",
+          "tag": "Taux"
+        },
+        "rating": {
+          "label": "Note moyenne",
+          "outOf": "/ 5"
+        },
+        "percent": "{n} %",
+        "unavailable": "–"
+      },
+      "orders": {
+        "title": "Commandes à traiter",
+        "recent": "{n} récentes",
+        "empty": "Aucune commande pour le moment.",
+        "viewAll": "Voir les commandes",
+        "client": "Client : {name}",
+        "status": {
+          "pending": "En attente",
+          "accepted": "Acceptée",
+          "scheduled": "Planifiée",
+          "inProgress": "En cours",
+          "completed": "Terminée",
+          "confirmed": "Confirmée",
+          "closed": "Clôturée",
+          "cancelled": "Annulée",
+          "disputed": "Contestée",
+          "unknown": "—"
+        }
+      },
+      "notifications": {
+        "title": "Notifications",
+        "markAllRead": "Tout marquer lu",
+        "empty": "Aucune notification."
+      },
+      "sectionError": "Impossible de charger cette section."
+    },
+    "profile": {
+      "title": "Mon profil professionnel",
+      "subtitle": "Gérez vos informations et indicateurs de confiance.",
+      "publicBadge": "PROFIL PUBLIC",
+      "publicTitle": "Informations publiques",
+      "optional": "(facultatif)",
+      "fields": {
+        "businessName": {
+          "label": "Nom commercial",
+          "help": "Nom affiché sur vos offres et votre profil public (80 caractères maximum). Exemple : « Jean M. – Plomberie et dépannage »."
+        },
+        "description": {
+          "label": "Description",
+          "help": "Présentez votre activité, votre expérience et vos zones d'intervention. 1000 caractères maximum. Ce texte est visible par tous les clients."
+        },
+        "location": {
+          "label": "Localité principale",
+          "sheetTitle": "Localité principale",
+          "placeholder": "Saisir une ville ou un quartier",
+          "help": "Ville ou quartier de votre lieu de travail. Seul le quartier est visible publiquement, jamais votre adresse précise.",
+          "searchHelp": "Tapez les premières lettres d'une ville ou d'un quartier ; les suggestions s'affichent en dessous.",
+          "empty": "Aucune localité trouvée."
+        },
+        "portfolioUrl": {
+          "label": "Lien portfolio",
+          "placeholder": "https://… (site, Facebook)",
+          "help": "Lien vers vos réalisations (site web, page Facebook…). Il doit commencer par https:// ou http://."
+        },
+        "videoUrl": {
+          "label": "Lien vidéo",
+          "placeholder": "https://… (YouTube, Facebook)",
+          "help": "Lien vers une vidéo de présentation (YouTube, Facebook…). Il doit commencer par https:// ou http://."
+        }
+      },
+      "validation": {
+        "required": "Ce champ est obligatoire.",
+        "tooLong": "Ce texte est trop long.",
+        "url": "Saisissez un lien valide commençant par https:// ou http://."
+      },
+      "save": "Enregistrer le profil",
+      "saved": "Profil enregistré.",
+      "nothingToSave": "Aucune modification à enregistrer.",
+      "verification": {
+        "title": "Niveau de vérification",
+        "levelChip": "Niveau : {name}",
+        "levels": {
+          "n0": "Non vérifié",
+          "n1": "Basique",
+          "n2": "Identité vérifiée",
+          "n3": "Activité vérifiée",
+          "unknown": "—"
+        },
+        "rows": {
+          "phone": "Téléphone vérifié",
+          "identity": "Pièce d'identité",
+          "activity": "Activité ou qualification"
+        },
+        "states": {
+          "validated": "Validé",
+          "pending": "En attente",
+          "rejected": "Rejetée",
+          "none": "Non fournie"
+        },
+        "loadFailed": "Les vérifications n'ont pas pu être chargées."
+      }
+    }
+  },
+  "shell": {
+    "menu": "Menu de navigation",
+    "role": {
+      "client": "Client",
+      "provider": "Prestataire",
+      "switchTo": "Passer en mode {role}"
+    },
+    "comingSoon": {
+      "title": "Bientôt disponible",
+      "subtitle": "Cette page sera ajoutée dans une prochaine version."
+    }
+  }
+}
