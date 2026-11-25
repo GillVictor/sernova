@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ServNova.Api/ServNova.Api.csproj" />
+    <Project Path="src/ServNova.SharedKernel/ServNova.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Accounts/">
+    <Project Path="src/Modules/Accounts/ServNova.Modules.Accounts.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Catalog/">
+    <Project Path="src/Modules/Catalog/ServNova.Modules.Catalog.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Matching/">
+    <Project Path="src/Modules/Matching/ServNova.Modules.Matching.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Notifications/">
+    <Project Path="src/Modules/Notifications/ServNova.Modules.Notifications.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Payments/">
+    <Project Path="src/Modules/Payments/ServNova.Modules.Payments.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Transactions/">
+    <Project Path="src/Modules/Transactions/ServNova.Modules.Transactions.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Api/">
+    <Project Path="tests/Api/ServNova.Api.Tests.csproj" />
+  </Folder>
+</Solution>

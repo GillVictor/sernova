@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\ServNova.SharedKernel\ServNova.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

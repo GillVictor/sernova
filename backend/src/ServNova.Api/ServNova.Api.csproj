@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\ServNova.SharedKernel\ServNova.SharedKernel.csproj" />
+    <ProjectReference Include="..\Modules\Accounts\ServNova.Modules.Accounts.csproj" />
+    <ProjectReference Include="..\Modules\Catalog\ServNova.Modules.Catalog.csproj" />
+    <ProjectReference Include="..\Modules\Matching\ServNova.Modules.Matching.csproj" />
+    <ProjectReference Include="..\Modules\Notifications\ServNova.Modules.Notifications.csproj" />
+    <ProjectReference Include="..\Modules\Payments\ServNova.Modules.Payments.csproj" />
+    <ProjectReference Include="..\Modules\Transactions\ServNova.Modules.Transactions.csproj" />
+  </ItemGroup>
+</Project>
