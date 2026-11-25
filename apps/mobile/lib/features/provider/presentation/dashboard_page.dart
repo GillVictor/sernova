@@ -286,7 +286,7 @@ class _StatCard extends StatelessWidget {
 // --------------------------------------------------------------- shared
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({super.key, required this.child});
+  const _SectionCard({required this.child});
   final Widget child;
 
   @override

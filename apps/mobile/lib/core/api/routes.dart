@@ -2,6 +2,9 @@
 /// Never add a path that is not in the contract (see AGENTS.md).
 class ApiRoutes {
   ApiRoutes._();
+  static const login = '/auth/login'; // EP-004
+  static const refresh = '/auth/refresh'; // EP-005
+  static const logout = '/auth/logout'; // EP-006
   static const categories = '/categories'; // EP-021
   static const locations = '/locations'; // EP-023
   static const offers = '/offers'; // EP-035

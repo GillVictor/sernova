@@ -23,12 +23,18 @@ class AppShell extends StatefulWidget {
     this.countryCode = 'CG',
     this.preferredRole = AppRole.client,
     this.placement = NavPlacement.rightRail,
+    this.onLogout,
   });
 
   final AppDependencies deps;
   final String countryCode;
   final AppRole preferredRole;
   final NavPlacement placement;
+
+  /// Signs the user out (EP-006). The "Se déconnecter" button is shown at the
+  /// bottom of the right-hand menu only when this is set (not in fake or
+  /// development-token mode). The bottom-bar layout has no place for it yet.
+  final VoidCallback? onLogout;
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -161,6 +167,16 @@ class _AppShellState extends State<AppShell> {
                           labelType: NavigationRailLabelType.all,
                           selectedIndex: index,
                           onDestinationSelected: _c.selectTab,
+                          trailing: widget.onLogout == null
+                              ? null
+                              : Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: IconButton(
+                                    tooltip: Strings.t('shell.logout'),
+                                    icon: const Icon(Icons.logout),
+                                    onPressed: widget.onLogout,
+                                  ),
+                                ),
                           leading: switcher == null
                               ? null
                               : Padding(

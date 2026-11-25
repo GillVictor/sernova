@@ -67,14 +67,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   foregroundColor: AppColors.primary,
                   elevation: 0,
                 ),
-          body: SafeArea(child: ready ? _Content(detail: d!, page: widget) : _State(c: _c)),
+          body: SafeArea(child: ready ? _Content(detail: d, page: widget) : _State(c: _c)),
           bottomNavigationBar: ready && widget.onOrder != null
               ? SafeArea(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                     child: FilledButton.icon(
                       style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(60)),
-                      onPressed: () => widget.onOrder!(d!),
+                      onPressed: () => widget.onOrder!(d),
                       icon: const Icon(Icons.shopping_cart_outlined),
                       label: Text(Strings.t('detail.order')),
                     ),

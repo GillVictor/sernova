@@ -6,9 +6,13 @@ import 'package:http/http.dart' as http;
 import 'api_exception.dart';
 
 /// Returns the current access token, or null when signed out.
-/// Sign-in, rotation and refresh belong to FR-01 (S1-T3); this client only
-/// attaches whatever token it is given.
+/// This client only attaches whatever token it is given; sign-in and rotation
+/// live in the session (features/auth).
 typedef AccessTokenProvider = FutureOr<String?> Function();
+
+/// Called after a 401 on a request that carried a token. Returns true when the
+/// access token was renewed (the request is then sent once more).
+typedef UnauthorizedHandler = Future<bool> Function();
 
 /// Minimal JSON client for /api/v1.
 class ApiClient {
@@ -18,6 +22,7 @@ class ApiClient {
     this.timeout = const Duration(seconds: 15),
     bool allowInsecure = false,
     this.accessToken,
+    this.onUnauthorized,
   })  : _baseUrl = _normalize(baseUrl),
         _http = httpClient ?? http.Client() {
     if (_baseUrl.scheme != 'https' && !allowInsecure) {
@@ -29,6 +34,7 @@ class ApiClient {
   final http.Client _http;
   final Duration timeout;
   final AccessTokenProvider? accessToken;
+  final UnauthorizedHandler? onUnauthorized;
 
   static Uri _normalize(Uri u) {
     final path = u.path.endsWith('/') ? u.path.substring(0, u.path.length - 1) : u.path;
@@ -44,7 +50,28 @@ class ApiClient {
 
   Future<Object?> putJson(String path, {Object? body}) => _send('PUT', path, body: body);
 
+  /// Sends the request; on a 401 for a request that carried a token, asks
+  /// [onUnauthorized] to renew it and tries once more. Routes under `/auth/`
+  /// are never retried (a wrong password is a 401 too, and a renewal must not
+  /// trigger another renewal).
   Future<Object?> _send(
+    String method,
+    String path, {
+    Map<String, String> query = const {},
+    Object? body,
+  }) async {
+    final hadToken = ((await accessToken?.call()) ?? '').isNotEmpty;
+    try {
+      return await _sendOnce(method, path, query: query, body: body);
+    } on ApiException catch (e) {
+      final renew = onUnauthorized;
+      if (e.status != 401 || !hadToken || renew == null || path.startsWith('/auth/')) rethrow;
+      if (!await renew()) rethrow;
+      return _sendOnce(method, path, query: query, body: body);
+    }
+  }
+
+  Future<Object?> _sendOnce(
     String method,
     String path, {
     Map<String, String> query = const {},

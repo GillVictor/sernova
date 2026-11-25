@@ -20,10 +20,15 @@ flutter run --dart-define=USE_FAKE_API=true --dart-define=FAKE_PROVIDER_ACTIVE=f
 ```
 Pour ajouter une page à un menu : voir `lib/shell/destinations.dart`.
 
-Espace prestataire (développement uniquement, en attendant FR-01) :
+Connexion (FR-01, tranche 1) : avec l'API (`API_BASE_URL`), l'application affiche l'écran de connexion
+(EP-004) ; le jeton d'accès est renouvelé automatiquement (EP-005) et le bouton de déconnexion est en bas
+du menu (EP-006). Le jeton de rafraîchissement n'est conservé qu'en mémoire tant que D31 n'est pas validée :
+il faut se reconnecter après chaque lancement.
+
+Espace prestataire (développement) :
 ```
 flutter run --dart-define=USE_FAKE_API=true --dart-define=START=provider
-# avec l'API : ajouter --dart-define=DEV_ACCESS_TOKEN=<jeton> (ignoré en release)
+# avec l'API, sans écran de connexion : --dart-define=DEV_ACCESS_TOKEN=<jeton> (debug seulement, ignoré en release)
 ```
 
 ## Tester
