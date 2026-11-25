@@ -8,14 +8,14 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 | PM-01 | Fournir le calendrier (jalons en heures : dépôt 720, moyenne 840, application terminée 960 ; capacité 160 h par semaine) | | Terminé | Humain | |
 | PM-02 | Trancher les points ouverts OP-01 à OP-14 | | Terminé | Humain + architecte | |
 | PM-03 | Ajouter CodeSms au dictionnaire et la route de contenu signé au contrat (OP-12, OP-13) | PM-02 | Terminé | Architecte | |
-| PM-04 | Dépôt GitHub créé (https://github.com/gkoanga-design/servnova) ; décider de sa visibilité, protéger la branche principale, activer la CI | | En cours | Humain | |
+| PM-04 | Dépôt GitHub créé (https://github.com/GillVictor/sernova) ; décider de sa visibilité, protéger la branche principale, activer la CI | | Terminé | Humain | |
 | PM-06 | Arbitrer OP-15 à OP-17 et les catégories désactivées (D32 à D35) ; PR docs : contrat (EP-009, EP-089, EP-091, EP-115), dictionnaire, décisions, points ouverts | | En revue | Claude (développeur backend) | docs/op-15-17-29-arbitrage |
 | PM-05 | Adapter les maquettes du prestataire à Flutter (OP-11, D26) | PM-02 | À faire | Humain + architecte | |
 
 ## Tranche S1 : socle (voir `docs/plan-S1.md`)
 | ID | Tâche | Dépend de | Statut | Propriétaire | Branche |
 |---|---|---|---|---|---|
-| S1-T0 | Initialisation de la solution, santé, erreurs, CI | PM-04 | À faire | | |
+| S1-T0 | Initialisation de la solution, santé, erreurs, CI | PM-04 | En cours | Claude (développeur backend) | feat/s1-t0-backend-skeleton |
 | S1-T1 | Noyau partagé et persistance | S1-T0 | À faire | | |
 | S1-T2 | Pays et localités | S1-T1, OP-09 | À faire | | |
 | S1-T3 | Authentification | S1-T1 | À faire | | |
