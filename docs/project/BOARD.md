@@ -62,7 +62,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 | P-04 | Squelette Flutter : thème, i18n, infobulles d'aide, client d'API, serveur factice (le socle a été livré par FR-03 à FR-07 ; textes en `fr.json`, D32 ; la branche `feat/p04-mobile-l10n` est abandonnée ; reste : infobulles d'aide sur tous les champs) | E | contrat | À faire | | |
 | P-05 | Squelette Next.js : connexion, client d'API, serveur factice | F | contrat | En revue | Claude (développeur administration) | feat/p05-admin-skeleton |
 | P-06 | Collection de requêtes et liste de contrôle de sécurité | G | S1-T3 | À faire | | |
-| P-07 | Génération du schéma OpenAPI et du serveur factice à partir du contrat | H | | En cours | Claude (architecte) | `docs/contract-v0.2` (étape 1 : feuille Schémas faite ; étape 2 : OpenAPI et serveur factice commun) |
+| P-07 | Génération du schéma OpenAPI et du serveur factice à partir du contrat | H | | En cours | Claude (architecte) | `docs/openapi-p07` (étape 1 faite : `docs/reference/openapi.yaml` généré du contrat, 114 opérations ; étape 2 : serveur factice commun) |
 | P-08 | Fichier des quartiers de Brazzaville et de Pointe-Noire | Humain | | À faire | | |
 
 ## Tranches suivantes (plan détaillé à rédiger avant démarrage)

@@ -60,3 +60,9 @@ Fait : état des lieux (`docs/project/reviews/2026-11-24-architecte-etat-des-lie
 Suit : fusion de FW-01, du contrat v0.2 puis de cette PR, avec revue croisée ; décisions du responsable produit (OP-32 avant S1-T2) ; **démarrage du backend (S1-T0)** ; P-07 étape 2.
 À signaler : aucun code applicatif modifié. Le backend n'a pas démarré ; le code mobile n'existe que dans un commit local non poussé. L'OP-21 de l'administration est devenu OP-29 (collision de numéros).
 
+## 2026-11-24 : P-07 étape 1, OpenAPI généré du contrat
+Instance : Claude (rôle architecte), branche `docs/openapi-p07` (issue de `docs/contract-v0.2`).
+Fait : `docs/reference/tools/generate_openapi.py` et `docs/reference/openapi.yaml` (OpenAPI 3.1 valide, 114 opérations identiques au contrat, 63 schémas, 84 codes d'erreur, en-tête `Idempotency-Key` sur EP-038, 044, 050, 051 et 055). Mode `--check` utilisable en CI.
+Suit : étape 2 (serveur factice commun aux deux fronts, à partir de ce schéma) ; précision des schémas restants tranche par tranche (20 routes sur 114 ont un schéma de réponse fixé).
+À signaler : le fichier généré ne se modifie jamais à la main. Fusionner d'abord `docs/contract-v0.2`.
+
