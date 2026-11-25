@@ -34,6 +34,17 @@ function tree(parentId = null, includeInactive = false) {
     .sort((a, b) => a.order - b.order)
     .map(({ parentId: _p, ...c }) => ({ ...c, children: tree(c.id, includeInactive) }));
 }
+// D34: options = comma-separated text (500 max), required for Liste, forbidden otherwise,
+// values trimmed, no empty value, no duplicate (case-insensitive).
+function optionsErrors(b) {
+  if (b.valueType !== "Liste") return b.options !== undefined && b.options !== null ? [["options", "INVALID"]] : [];
+  if (typeof b.options !== "string" || !b.options.trim()) return [["options", "REQUIRED"]];
+  const items = b.options.split(",").map((s) => s.trim());
+  if (b.options.length > 500 || items.some((s) => s === "")) return [["options", "INVALID"]];
+  if (new Set(items.map((s) => s.toLowerCase())).size !== items.length) return [["options", "INVALID"]];
+  b.options = items.join(", ");
+  return [];
+}
 const FAMILIES = ["Numerique", "Domicile", "Travaux", "Vente", "Livraison"];
 const LEVELS = ["N0", "N1", "N2", "N3"];
 const TYPES = ["Texte", "Nombre", "Booleen", "Liste"];
@@ -135,13 +146,16 @@ const handler = async (req, res) => {
       const bad = [
         !b.name || typeof b.name !== "string" || b.name.length > 80 ? ["name", b.name ? "INVALID" : "REQUIRED"] : null,
         !Number.isInteger(b.order) ? ["order", "INVALID"] : null,
+        // D34: root = family required; with parentId = family forbidden (inherited)
         !b.parentId && !FAMILIES.includes(b.family) ? ["family", "REQUIRED"] : null,
-        !LEVELS.includes(b.minVerificationLevel) ? ["minVerificationLevel", "INVALID"] : null,
+        b.parentId && b.family !== undefined ? ["family", "INVALID"] : null,
+        // D34: minVerificationLevel is optional, N0 by default
+        b.minVerificationLevel !== undefined && !LEVELS.includes(b.minVerificationLevel) ? ["minVerificationLevel", "INVALID"] : null,
         b.parentId && !categories.some((c) => c.id === b.parentId) ? ["parentId", "INVALID"] : null,
       ].filter(Boolean);
       if (bad.length) return invalid(bad);
       if (categories.some((c) => c.parentId === (b.parentId ?? null) && c.name.toLowerCase() === b.name.toLowerCase())) return problem(res, 409, "DUPLICATE_NAME");
-      const { parentId: _p, ...created } = addCategory(b);
+      const { parentId: _p, ...created } = addCategory({ ...b, minVerificationLevel: b.minVerificationLevel ?? "N0" });
       return json(res, 201, created);
     }
 
@@ -168,7 +182,7 @@ const handler = async (req, res) => {
           !b.name || b.name.length > 60 ? ["name", b.name ? "INVALID" : "REQUIRED"] : null,
           !TYPES.includes(b.valueType) ? ["valueType", "INVALID"] : null,
           typeof b.required !== "boolean" ? ["required", "INVALID"] : null,
-          b.valueType === "Liste" && !b.options ? ["options", "REQUIRED"] : null,
+          ...optionsErrors(b),
         ].filter(Boolean);
         if (bad.length) return invalid(bad);
         const list = attributes.get(category.id) ?? [];

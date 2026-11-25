@@ -55,6 +55,8 @@
     "required": "Ce champ est obligatoire.",
     "invalid": "Valeur invalide.",
     "optionsRequired": "Indiquez au moins une valeur pour une liste.",
+    "optionsEmptyItem": "Une valeur est vide : vérifiez les virgules.",
+    "optionsDuplicate": "La valeur « {value} » est en double.",
     "nameTooLong": "{max} caractères maximum.",
     "orderInteger": "Saisissez un nombre entier."
   },
@@ -149,7 +151,7 @@
       "options": {
         "label": "Valeurs possibles",
         "placeholder": "Ex. Neuf, Occasion",
-        "help": "Uniquement pour le type Liste : saisissez les valeurs proposées, séparées par des virgules (500 caractères maximum au total)."
+        "help": "Uniquement pour le type Liste : saisissez les valeurs proposées, séparées par des virgules, sans valeur vide ni doublon (500 caractères maximum au total)."
       }
     },
     "options": {

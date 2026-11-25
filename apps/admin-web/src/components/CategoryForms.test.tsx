@@ -160,4 +160,52 @@ describe("AddAttributeForm", () => {
       expect(onAdd).toHaveBeenCalledWith({ name: "Etat", valueType: "Liste", required: true, options: "Neuf, Occasion" }),
     );
   });
+
+  async function fillList(user: ReturnType<typeof userEvent.setup>, values: string) {
+    await user.type(screen.getByLabelText("Nom"), "Etat");
+    await user.selectOptions(screen.getByLabelText("Type de valeur"), "Liste");
+    await user.type(screen.getByLabelText("Valeurs possibles"), values);
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+  }
+
+  it("cleans the spaces around each option before sending (D34)", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await fillList(user, "  Neuf ,Occasion ");
+    await waitFor(() =>
+      expect(onAdd).toHaveBeenCalledWith({ name: "Etat", valueType: "Liste", required: false, options: "Neuf, Occasion" }),
+    );
+  });
+
+  it("refuses an empty value and does not call the API", async () => {
+    const onAdd = vi.fn();
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await fillList(user, "Neuf,,Occasion");
+    expect(screen.getByText(messages.validation.optionsEmptyItem)).toBeInTheDocument();
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it("refuses a duplicate and names it", async () => {
+    const onAdd = vi.fn();
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await fillList(user, "Neuf, Occasion, neuf");
+    expect(screen.getByText("La valeur « neuf » est en double.")).toBeInTheDocument();
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it("never sends options for a type other than Liste", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await user.type(screen.getByLabelText("Nom"), "Marque");
+    await user.selectOptions(screen.getByLabelText("Type de valeur"), "Liste");
+    await user.type(screen.getByLabelText("Valeurs possibles"), "A, B");
+    await user.selectOptions(screen.getByLabelText("Type de valeur"), "Texte");
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+    await waitFor(() => expect(onAdd).toHaveBeenCalledWith({ name: "Marque", valueType: "Texte", required: false }));
+  });
 });
+

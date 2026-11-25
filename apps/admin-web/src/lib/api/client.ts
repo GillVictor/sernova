@@ -45,7 +45,8 @@ export interface CreateCategoryInput {
   name: string;
   order: number;
   family?: Family;
-  minVerificationLevel: VerificationLevel;
+  /** Optional since D34: the server defaults to N0. */
+  minVerificationLevel?: VerificationLevel;
 }
 
 export interface UpdateCategoryInput {
