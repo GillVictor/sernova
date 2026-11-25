@@ -1,0 +1,6483 @@
+openapi: 3.1.0
+info:
+  title: ServNova API
+  version: '0.2'
+  description: 'Généré depuis docs/reference/api-contract.xlsx et data-dictionary.xlsx (ne pas modifier à la main). Les schémas
+    marqués `x-schema-status: indicative` ne sont pas encore fixés (voir la feuille Schémas).'
+servers:
+- url: /api/v1
+tags:
+- name: auth
+- name: users
+- name: providers
+- name: categories
+- name: locations
+- name: files
+- name: offers
+- name: requests
+- name: proposals
+- name: transactions
+- name: payments
+- name: webhooks
+- name: admin
+- name: disputes
+- name: deliveries
+- name: conversations
+- name: notifications
+- name: health
+paths:
+  /auth/register:
+    post:
+      operationId: postAuthRegister
+      summary: Créer un compte (client par défaut)
+      tags:
+      - auth
+      x-ep: EP-001
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : phone, password, displayName, language, countryCode, email?. Réponse : 201 {userId} ; code SMS
+        envoyé. Notes : Compte en attente de vérification du téléphone'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {}
+                password: {}
+                displayName: {}
+                language: {}
+                countryCode: {}
+                email: {}
+              x-schema-status: indicative
+              required:
+              - phone
+              - password
+              - displayName
+              - language
+              - countryCode
+      security: []
+      responses:
+        '201':
+          description: 201 {userId} ; code SMS envoyé
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 {userId} ; code SMS envoyé
+                x-schema-status: indicative
+        '409':
+          description: 'Codes : PHONE_ALREADY_USED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : VALIDATION_FAILED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: 'Codes : RATE_LIMITED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /auth/verify-phone:
+    post:
+      operationId: postAuthVerifyphone
+      summary: Confirmer le numéro par code SMS
+      tags:
+      - auth
+      x-ep: EP-002
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : phone, code. Réponse : 200 {accessToken, refreshToken}. Notes : Passe le niveau N0 à N1'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {}
+                code: {}
+              x-schema-status: indicative
+              required:
+              - phone
+              - code
+      security: []
+      responses:
+        '200':
+          description: 200 {accessToken, refreshToken}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenPair'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : CODE_EXPIRED, CODE_INVALID'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: 'Codes : RATE_LIMITED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /auth/resend-code:
+    post:
+      operationId: postAuthResendcode
+      summary: Renvoyer le code SMS
+      tags:
+      - auth
+      x-ep: EP-003
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : phone. Réponse : 204. Notes : Limite stricte par numéro'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {}
+              x-schema-status: indicative
+              required:
+              - phone
+      security: []
+      responses:
+        '204':
+          description: '204'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: 'Codes : RATE_LIMITED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /auth/login:
+    post:
+      operationId: postAuthLogin
+      summary: Se connecter
+      tags:
+      - auth
+      x-ep: EP-004
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : phone, password. Réponse : 200 {accessToken, refreshToken}. Notes : Accès 15 min ; renouvellement
+        30 jours'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {}
+                password: {}
+              x-schema-status: indicative
+              required:
+              - phone
+              - password
+      security: []
+      responses:
+        '200':
+          description: 200 {accessToken, refreshToken}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenPair'
+        '401':
+          description: 'Codes : INVALID_CREDENTIALS'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          description: 'Codes : PHONE_NOT_VERIFIED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '423':
+          description: 'Codes : ACCOUNT_SUSPENDED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /auth/refresh:
+    post:
+      operationId: postAuthRefresh
+      summary: Renouveler les jetons (rotation)
+      tags:
+      - auth
+      x-ep: EP-005
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : refreshToken. Réponse : 200 nouveaux jetons. Notes : Un jeton déjà utilisé révoque la famille'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: {}
+              x-schema-status: indicative
+              required:
+              - refreshToken
+      security: []
+      responses:
+        '200':
+          description: 200 nouveaux jetons
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tokenPair'
+        '401':
+          description: 'Codes : TOKEN_EXPIRED, TOKEN_REVOKED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /auth/logout:
+    post:
+      operationId: postAuthLogout
+      summary: Se déconnecter
+      tags:
+      - auth
+      x-ep: EP-006
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Entrée : refreshToken. Réponse : 204. Notes : Révoque le jeton'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: {}
+              x-schema-status: indicative
+              required:
+              - refreshToken
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /auth/password/forgot:
+    post:
+      operationId: postAuthPasswordForgot
+      summary: Demander la réinitialisation
+      tags:
+      - auth
+      x-ep: EP-007
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : phone. Réponse : 204 (toujours). Notes : Ne révèle pas l''existence du compte'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {}
+              x-schema-status: indicative
+              required:
+              - phone
+      security: []
+      responses:
+        '204':
+          description: 204 (toujours)
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+        '429':
+          description: 'Codes : RATE_LIMITED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /auth/password/reset:
+    post:
+      operationId: postAuthPasswordReset
+      summary: Réinitialiser le mot de passe
+      tags:
+      - auth
+      x-ep: EP-008
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : phone, code, newPassword. Réponse : 204. Notes : Révoque tous les jetons'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone: {}
+                code: {}
+                newPassword: {}
+              x-schema-status: indicative
+              required:
+              - phone
+              - code
+              - newPassword
+      security: []
+      responses:
+        '204':
+          description: '204'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : CODE_EXPIRED, CODE_INVALID'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users/me:
+    get:
+      operationId: getUsersMe
+      summary: Lire son compte
+      tags:
+      - users
+      x-ep: EP-009
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Réponse : 200 {user, capacities, providerStatus, permissions[]}. Notes : providerStatus : Brouillon, Actif,
+        Suspendu ou null (aucun profil prestataire) ; permissions : codes de permission administrateur, [] pour un compte
+        ordinaire. Voir Schémas : account.'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {user, capacities, providerStatus, permissions[]}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/account'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    patch:
+      operationId: patchUsersMe
+      summary: Modifier son compte
+      tags:
+      - users
+      x-ep: EP-010
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Entrée : displayName?, language?, email?. Réponse : 200 user.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName: {}
+                language: {}
+                email: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 user
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 user
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 'Codes : EMAIL_ALREADY_USED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : VALIDATION_FAILED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users/me/provider:
+    post:
+      operationId: postUsersMeProvider
+      summary: Activer la capacité prestataire
+      tags:
+      - users
+      x-ep: EP-011
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Entrée : businessName, workLocationId, coverageMode, radiusKm?, categoryIds[1..5]. Réponse : 201 providerProfile.
+        Notes : Profil créé en statut Actif si le minimum est renseigné'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName: {}
+                workLocationId:
+                  type: string
+                  format: uuid
+                coverageMode: {}
+                radiusKm: {}
+              x-schema-status: indicative
+              required:
+              - businessName
+              - workLocationId
+              - coverageMode
+              description: 'Autres éléments de l''entrée (forme libre) : categoryIds[1..5]'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 providerProfile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/providerProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: 'Codes : PROVIDER_ALREADY_ACTIVE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : DOMAIN_LIMIT_EXCEEDED, LOCATION_REQUIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users/me/devices:
+    put:
+      operationId: putUsersMeDevices
+      summary: Enregistrer le jeton de notification push
+      tags:
+      - users
+      x-ep: EP-012
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Entrée : fcmToken, platform. Réponse : 204. Notes : Un jeton par appareil'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fcmToken: {}
+                platform: {}
+              x-schema-status: indicative
+              required:
+              - fcmToken
+              - platform
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /users/me/devices/{token}:
+    delete:
+      operationId: deleteUsersMeDevicesByToken
+      summary: Retirer un appareil
+      tags:
+      - users
+      x-ep: EP-013
+      x-useCase: UC01
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Réponse : 204.'
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /providers/me:
+    get:
+      operationId: getProvidersMe
+      summary: Lire son profil professionnel
+      tags:
+      - providers
+      x-ep: EP-014
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Prestataire
+      description: 'Réponse : 200 providerProfile (complet).'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 providerProfile (complet)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/providerProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: 'Codes : PROFILE_NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    patch:
+      operationId: patchProvidersMe
+      summary: Modifier son profil
+      tags:
+      - providers
+      x-ep: EP-015
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Prestataire
+      description: 'Entrée : businessName?, description?, portfolioUrl?, videoUrl?, workLocationId?, homeLocationId?, activeLocation?,
+        coverageMode?, radiusKm?, workLandmark?. Réponse : 200 providerProfile. Notes : Ne jamais exposer le domicile précis.
+        Un champ facultatif envoyé à null est effacé (voir Conventions : PATCH et null).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessName: {}
+                description: {}
+                portfolioUrl: {}
+                videoUrl: {}
+                workLocationId:
+                  type: string
+                  format: uuid
+                homeLocationId:
+                  type: string
+                  format: uuid
+                activeLocation: {}
+                coverageMode: {}
+                radiusKm: {}
+                workLandmark: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 providerProfile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/providerProfile'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : ACTIVE_LOCATION_EMPTY, RADIUS_REQUIRED, VALIDATION_FAILED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /providers/me/domains:
+    put:
+      operationId: putProvidersMeDomains
+      summary: Remplacer ses domaines d'activité
+      tags:
+      - providers
+      x-ep: EP-016
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Prestataire
+      description: 'Entrée : categoryIds[1..5]. Réponse : 200 domains.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : categoryIds[1..5]'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 domains
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 domains
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : CATEGORY_INACTIVE, DOMAIN_LIMIT_EXCEEDED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /providers/me/verifications:
+    post:
+      operationId: postProvidersMeVerifications
+      summary: Demander une vérification
+      tags:
+      - providers
+      x-ep: EP-017
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Prestataire
+      description: 'Entrée : type, fileId. Réponse : 201 verification (EnAttente).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: {}
+                fileId:
+                  type: string
+                  format: uuid
+              x-schema-status: indicative
+              required:
+              - type
+              - fileId
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 verification (EnAttente)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 verification (EnAttente)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FILE_NOT_OWNED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : VERIFICATION_PENDING'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    get:
+      operationId: getProvidersMeVerifications
+      summary: Suivre ses vérifications
+      tags:
+      - providers
+      x-ep: EP-018
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Prestataire
+      description: 'Réponse : 200 verification[].'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 verification[]
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/verification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /providers/{id}:
+    get:
+      operationId: getProvidersById
+      summary: Lire un profil public
+      tags:
+      - providers
+      x-ep: EP-019
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Réponse : 200 {businessName, level, rating, reviewCount, quartier, offers[]}. Notes : Localisation au
+        niveau quartier seulement'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security: []
+      responses:
+        '200':
+          description: 200 {businessName, level, rating, reviewCount, quartier, offers[]}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {businessName, level, rating, reviewCount, quartier, offers[]}
+                x-schema-status: indicative
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /providers/{id}/reviews:
+    get:
+      operationId: getProvidersByIdReviews
+      summary: Lire les avis d'un prestataire
+      tags:
+      - providers
+      x-ep: EP-020
+      x-useCase: UC02
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /categories:
+    get:
+      operationId: getCategories
+      summary: Arbre des catégories actives
+      tags:
+      - categories
+      x-ep: EP-021
+      x-useCase: UC03
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : includeInactive? (réservé à categories.manage). Réponse : 200 category[] (arbre). Notes : Mis
+        en cache. Sans includeInactive, seules les catégories actives sont renvoyées ; avec includeInactive par un administrateur,
+        les désactivées sont incluses (active = false).'
+      parameters:
+      - name: includeInactive
+        in: query
+        required: false
+        schema:
+          type: boolean
+      security: []
+      responses:
+        '200':
+          description: 200 category[] (arbre)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/category'
+  /categories/{id}/attributes:
+    get:
+      operationId: getCategoriesByIdAttributes
+      summary: Caractéristiques d'une catégorie
+      tags:
+      - categories
+      x-ep: EP-022
+      x-useCase: UC03
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Réponse : 200 attributeDefinition[].'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security: []
+      responses:
+        '200':
+          description: 200 attributeDefinition[]
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/attributeDefinition'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /locations:
+    get:
+      operationId: getLocations
+      summary: Rechercher une localité (saisie assistée)
+      tags:
+      - locations
+      x-ep: EP-023
+      x-useCase: UC03
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Entrée : countryCode, q, limit. Réponse : 200 location[].'
+      parameters:
+      - name: countryCode
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      security: []
+      responses:
+        '200':
+          description: 200 location[]
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/location'
+  /files:
+    post:
+      operationId: postFiles
+      summary: Téléverser un fichier
+      tags:
+      - files
+      x-ep: EP-024
+      x-useCase: UC03
+      x-tranche: S1 Socle
+      x-access: Authentifié
+      description: 'Entrée : multipart : purpose, file. Réponse : 201 {fileId}. Notes : Fichier privé par défaut ; analyse
+        du type réel'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file: {}
+              x-schema-status: indicative
+              required:
+              - file
+              description: 'Autres éléments de l''entrée (forme libre) : multipart : purpose'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 {fileId}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 {fileId}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: 'Codes : FILE_TOO_LARGE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '415':
+          description: 'Codes : FILE_TYPE_NOT_ALLOWED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /files/{id}/url:
+    get:
+      operationId: getFilesByIdUrl
+      summary: Obtenir un lien d'accès signé
+      tags:
+      - files
+      x-ep: EP-025
+      x-useCase: UC03
+      x-tranche: S1 Socle
+      x-access: Propriétaire ou partie autorisée
+      description: 'Réponse : 200 {url, expiresAt}. Notes : Lien valable quelques minutes'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {url, expiresAt}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {url, expiresAt}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /offers:
+    post:
+      operationId: postOffers
+      summary: Créer une offre (brouillon)
+      tags:
+      - offers
+      x-ep: EP-026
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire
+      description: 'Entrée : categoryId, title, description, type, modality, pricingMode, price?, currency, scope, deliveryFee?,
+        handoverModes?, attributes[{definitionId, value}]. Réponse : 201 offer (Brouillon).'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoryId:
+                  type: string
+                  format: uuid
+                title: {}
+                description: {}
+                type: {}
+                modality: {}
+                pricingMode: {}
+                price: {}
+                currency: {}
+                scope: {}
+                deliveryFee: {}
+                handoverModes: {}
+              x-schema-status: indicative
+              required:
+              - categoryId
+              - title
+              - description
+              - type
+              - modality
+              - pricingMode
+              - currency
+              - scope
+              description: 'Autres éléments de l''entrée (forme libre) : attributes[{definitionId, value}]'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 offer (Brouillon)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 offer (Brouillon)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : PROFILE_NOT_ACTIVE, VERIFICATION_LEVEL_TOO_LOW'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : ATTRIBUTE_REQUIRED, CATEGORY_NOT_LEAF'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      operationId: getOffers
+      summary: Rechercher des offres valables
+      tags:
+      - offers
+      x-ep: EP-035
+      x-useCase: UC04
+      x-tranche: S2 Catalogue
+      x-access: Public
+      description: 'Entrée : q, categoryId, locationId ou lat+lng, coverageOnly, priceMin, priceMax, sort (distance, rating,
+        price), limit, cursor. Réponse : 200 {items[{offer, provider, distanceKm}], nextCursor}. Notes : Ne renvoie que les
+        offres valables ; couverture du prestataire appliquée. Sens du tri fixe (voir Conventions : Tri et curseur). Voir
+        Schémas : offerSearchItem.'
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: locationId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: lat
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: lng
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: coverageOnly
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: priceMin
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: priceMax
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - distance
+          - rating
+          - price
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security: []
+      responses:
+        '200':
+          description: 200 {items[{offer, provider, distanceKm}], nextCursor}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOf_offerSearchItem'
+  /offers/{id}:
+    patch:
+      operationId: patchOffersById
+      summary: Modifier une offre
+      tags:
+      - offers
+      x-ep: EP-027
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire propriétaire
+      description: 'Entrée : champs modifiables ci-dessus. Réponse : 200 offer. Notes : Les transactions en cours gardent
+        leurs conditions figées'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : champs modifiables ci-dessus'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 offer
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 offer
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : OFFER_LOCKED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    get:
+      operationId: getOffersById
+      summary: Lire une offre
+      tags:
+      - offers
+      x-ep: EP-037
+      x-useCase: UC04
+      x-tranche: S2 Catalogue
+      x-access: Public
+      description: 'Réponse : 200 offer + provider + items + freeSlots. Notes : Le propriétaire voit aussi les brouillons'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security: []
+      responses:
+        '200':
+          description: 200 offer + provider + items + freeSlots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offerDetail'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /offers/{id}/publish:
+    post:
+      operationId: postOffersByIdPublish
+      summary: Publier l'offre
+      tags:
+      - offers
+      x-ep: EP-028
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire propriétaire
+      description: 'Réponse : 200 offer (Publiee). Notes : Une offre internationale reste invisible tant qu''elle n''est pas
+        validée'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 offer (Publiee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 offer (Publiee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : PROFILE_NOT_ACTIVE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : INTERNATIONAL_NOT_VALIDATED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : OFFER_INCOMPLETE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /offers/{id}/deactivate:
+    post:
+      operationId: postOffersByIdDeactivate
+      summary: Désactiver l'offre
+      tags:
+      - offers
+      x-ep: EP-029
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire propriétaire
+      description: 'Réponse : 200 offer (Desactivee).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 offer (Desactivee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 offer (Desactivee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /offers/mine:
+    get:
+      operationId: getOffersMine
+      summary: Lister ses offres
+      tags:
+      - offers
+      x-ep: EP-030
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire
+      description: 'Entrée : status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOf_offerSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /offers/{id}/items:
+    post:
+      operationId: postOffersByIdItems
+      summary: Ajouter un article (vente)
+      tags:
+      - offers
+      x-ep: EP-031
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire propriétaire
+      description: 'Entrée : designation, price, available, photoFileId?. Réponse : 201 item.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                designation: {}
+                price: {}
+                available: {}
+                photoFileId:
+                  type: string
+                  format: uuid
+              x-schema-status: indicative
+              required:
+              - designation
+              - price
+              - available
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 item
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 item
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : OFFER_NOT_A_GOOD'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /offers/{id}/items/{itemId}:
+    patch:
+      operationId: patchOffersByIdItemsByItemId
+      summary: Modifier un article, dont sa disponibilité
+      tags:
+      - offers
+      x-ep: EP-032
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire propriétaire
+      description: 'Entrée : designation?, price?, available?. Réponse : 200 item.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                designation: {}
+                price: {}
+                available: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 item
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 item
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /providers/me/slots:
+    post:
+      operationId: postProvidersMeSlots
+      summary: Ajouter un créneau de disponibilité
+      tags:
+      - providers
+      x-ep: EP-033
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire
+      description: 'Entrée : start, end. Réponse : 201 slot. Notes : Créneaux rattachés au profil : pas de double réservation
+        entre offres'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                start: {}
+                end: {}
+              x-schema-status: indicative
+              required:
+              - start
+              - end
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 slot
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 slot
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : SLOT_OVERLAP'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : VALIDATION_FAILED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /providers/me/slots/{slotId}:
+    delete:
+      operationId: deleteProvidersMeSlotsBySlotId
+      summary: Retirer un créneau libre
+      tags:
+      - providers
+      x-ep: EP-034
+      x-useCase: UC03
+      x-tranche: S2 Catalogue
+      x-access: Prestataire
+      description: 'Réponse : 204.'
+      parameters:
+      - name: slotId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : SLOT_RESERVED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /offers/map:
+    get:
+      operationId: getOffersMap
+      summary: 'Carte : prestataires ayant une offre valable (F19)'
+      tags:
+      - offers
+      x-ep: EP-036
+      x-useCase: UC04
+      x-tranche: S2 Catalogue
+      x-access: Public
+      description: 'Entrée : bbox, categoryId?, coverageOnly?. Réponse : 200 pin[{providerId, quartierPoint, offerCount}].
+        Notes : Un marqueur par prestataire ; niveau quartier'
+      parameters:
+      - name: bbox
+        in: query
+        required: true
+        schema:
+          type: string
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: coverageOnly
+        in: query
+        required: false
+        schema:
+          type: boolean
+      security: []
+      responses:
+        '200':
+          description: 200 pin[{providerId, quartierPoint, offerCount}]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 pin[{providerId, quartierPoint, offerCount}]
+                x-schema-status: indicative
+  /requests:
+    post:
+      operationId: postRequests
+      summary: Publier une demande
+      tags:
+      - requests
+      x-ep: EP-038
+      x-useCase: UC05
+      x-tranche: S4 Voie B
+      x-access: Client (authentifié)
+      description: 'Entrée : categoryId, locationId?, title, description, deadline?, budget?, currency. Réponse : 201 {requestId,
+        recipientCount}. Notes : Diffusion asynchrone aux prestataires éligibles ; Idempotency-Key'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 'Même clé avec un corps différent : 422 IDEMPOTENCY_KEY_REUSED'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/requestInput'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 {requestId, recipientCount}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/requestCreated'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : CATEGORY_NOT_LEAF'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: 'Codes : TOO_MANY_OPEN_REQUESTS'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /requests/mine:
+    get:
+      operationId: getRequestsMine
+      summary: Lister ses demandes
+      tags:
+      - requests
+      x-ep: EP-039
+      x-useCase: UC05
+      x-tranche: S4 Voie B
+      x-access: Client
+      description: 'Entrée : status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /requests/{id}:
+    get:
+      operationId: getRequestsById
+      summary: Lire une demande
+      tags:
+      - requests
+      x-ep: EP-040
+      x-useCase: UC05
+      x-tranche: S4 Voie B
+      x-access: Demandeur, prestataire éligible ou admin
+      description: 'Réponse : 200 request (+ proposalCount/maxProposals). Notes : Les coordonnées du client ne sont jamais
+        renvoyées'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 request (+ proposalCount/maxProposals)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 request (+ proposalCount/maxProposals)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /requests/{id}/extend:
+    post:
+      operationId: postRequestsByIdExtend
+      summary: Prolonger ou demander plus de propositions
+      tags:
+      - requests
+      x-ep: EP-041
+      x-useCase: UC05
+      x-tranche: S4 Voie B
+      x-access: Demandeur
+      description: 'Entrée : hours. Réponse : 200 request.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hours: {}
+              x-schema-status: indicative
+              required:
+              - hours
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 request
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 request
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : REQUEST_NOT_OPEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /requests/{id}/close:
+    post:
+      operationId: postRequestsByIdClose
+      summary: Fermer la demande
+      tags:
+      - requests
+      x-ep: EP-042
+      x-useCase: UC05
+      x-tranche: S4 Voie B
+      x-access: Demandeur
+      description: 'Réponse : 200 request (Fermee).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 request (Fermee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 request (Fermee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : REQUEST_NOT_OPEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /requests/feed:
+    get:
+      operationId: getRequestsFeed
+      summary: Demandes pour moi (flux du prestataire)
+      tags:
+      - requests
+      x-ep: EP-043
+      x-useCase: UC06
+      x-tranche: S4 Voie B
+      x-access: Prestataire
+      description: 'Entrée : categoryId?, status, limit, cursor. Réponse : 200 {items[{request, proposalCount, maxProposals}],
+        nextCursor}. Notes : Éligibilité calculée à la lecture'
+      parameters:
+      - name: categoryId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items[{request, proposalCount, maxProposals}], nextCursor}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOf_requestFeedItem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /requests/{id}/proposals:
+    post:
+      operationId: postRequestsByIdProposals
+      summary: Répondre par une proposition
+      tags:
+      - requests
+      x-ep: EP-044
+      x-useCase: UC06
+      x-tranche: S4 Voie B
+      x-access: Prestataire éligible
+      description: 'Entrée : price, currency, conditions?, deadline?. Réponse : 201 proposal. Notes : Contrôle du plafond
+        atomique ; Idempotency-Key'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 'Même clé avec un corps différent : 422 IDEMPOTENCY_KEY_REUSED'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price: {}
+                currency: {}
+                conditions: {}
+                deadline: {}
+              x-schema-status: indicative
+              required:
+              - price
+              - currency
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 proposal
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 proposal
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : NOT_ELIGIBLE, OWN_REQUEST'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : ALREADY_PROPOSED, PROPOSAL_CAP_REACHED, REQUEST_NOT_OPEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    get:
+      operationId: getRequestsByIdProposals
+      summary: Comparer les propositions reçues
+      tags:
+      - requests
+      x-ep: EP-048
+      x-useCase: UC07
+      x-tranche: S4 Voie B
+      x-access: Demandeur
+      description: 'Entrée : sort (price, rating), limit, cursor. Réponse : 200 {items[{proposal, provider}], nextCursor}.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - price
+          - rating
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items[{proposal, provider}], nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items[{proposal, provider}], nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /proposals/{id}:
+    patch:
+      operationId: patchProposalsById
+      summary: Modifier sa proposition active
+      tags:
+      - proposals
+      x-ep: EP-045
+      x-useCase: UC06
+      x-tranche: S4 Voie B
+      x-access: Prestataire auteur
+      description: 'Entrée : price?, conditions?, deadline?. Réponse : 200 proposal.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price: {}
+                conditions: {}
+                deadline: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 proposal
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 proposal
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : PROPOSAL_NOT_ACTIVE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /proposals/{id}/withdraw:
+    post:
+      operationId: postProposalsByIdWithdraw
+      summary: Retirer sa proposition
+      tags:
+      - proposals
+      x-ep: EP-046
+      x-useCase: UC06
+      x-tranche: S4 Voie B
+      x-access: Prestataire auteur
+      description: 'Réponse : 200 proposal (Retiree). Notes : Libère une place'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 proposal (Retiree)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 proposal (Retiree)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : PROPOSAL_NOT_ACTIVE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /proposals/mine:
+    get:
+      operationId: getProposalsMine
+      summary: Suivre ses propositions
+      tags:
+      - proposals
+      x-ep: EP-047
+      x-useCase: UC06
+      x-tranche: S4 Voie B
+      x-access: Prestataire
+      description: 'Entrée : status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /proposals/{id}/reject:
+    post:
+      operationId: postProposalsByIdReject
+      summary: Refuser une proposition
+      tags:
+      - proposals
+      x-ep: EP-049
+      x-useCase: UC07
+      x-tranche: S4 Voie B
+      x-access: Demandeur
+      description: 'Entrée : reason?. Réponse : 200 proposal (Refusee). Notes : Libère une place'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 proposal (Refusee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 proposal (Refusee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : PROPOSAL_NOT_ACTIVE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /proposals/{id}/select:
+    post:
+      operationId: postProposalsByIdSelect
+      summary: Retenir une proposition
+      tags:
+      - proposals
+      x-ep: EP-050
+      x-useCase: UC07
+      x-tranche: S4 Voie B
+      x-access: Demandeur
+      description: 'Réponse : 201 transaction (Acceptee). Notes : Crée la transaction voie B ; les autres propositions passent
+        à NonRetenue ; Idempotency-Key'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 'Même clé avec un corps différent : 422 IDEMPOTENCY_KEY_REUSED'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 transaction (Acceptee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 transaction (Acceptee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : PROPOSAL_NOT_ACTIVE, REQUEST_NOT_OPEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /offers/{id}/orders:
+    post:
+      operationId: postOffersByIdOrders
+      summary: Commander une offre
+      tags:
+      - offers
+      x-ep: EP-051
+      x-useCase: UC08
+      x-tranche: S3 Voie A et paiement
+      x-access: Client (authentifié)
+      description: 'Entrée : slotId?, items[{itemId, quantity}]?, handoverMode?, interventionAddress?, deliveryLocationId?.
+        Réponse : 201 transaction (EnAttente). Notes : Fige les conditions ; ouvre la conversation ; Idempotency-Key'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 'Même clé avec un corps différent : 422 IDEMPOTENCY_KEY_REUSED'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                slotId:
+                  type: string
+                  format: uuid
+                handoverMode: {}
+                interventionAddress: {}
+                deliveryLocationId:
+                  type: string
+                  format: uuid
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : items[{itemId, quantity}]?'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 transaction (EnAttente)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 transaction (EnAttente)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Codes : OWN_OFFER'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : ITEM_UNAVAILABLE, OFFER_NOT_AVAILABLE, SLOT_TAKEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : ADDRESS_REQUIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '429':
+          description: 'Codes : TOO_MANY_PENDING_ORDERS'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /transactions/{id}/accept:
+    post:
+      operationId: postTransactionsByIdAccept
+      summary: Accepter la commande
+      tags:
+      - transactions
+      x-ep: EP-052
+      x-useCase: UC09
+      x-tranche: S3 Voie A et paiement
+      x-access: Prestataire de la transaction
+      description: 'Réponse : 200 transaction (Acceptee). Notes : Demande au client de réserver les fonds ; If-Match: version'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Acceptee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Acceptee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION, RESPONSE_WINDOW_EXPIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: 'Codes : VERSION_CONFLICT'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/decline:
+    post:
+      operationId: postTransactionsByIdDecline
+      summary: Refuser la commande
+      tags:
+      - transactions
+      x-ep: EP-053
+      x-useCase: UC09
+      x-tranche: S3 Voie A et paiement
+      x-access: Prestataire de la transaction
+      description: 'Entrée : reason?. Réponse : 200 transaction (Annulee). Notes : Libère le créneau'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Annulee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Annulee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/cancel:
+    post:
+      operationId: postTransactionsByIdCancel
+      summary: Annuler
+      tags:
+      - transactions
+      x-ep: EP-054
+      x-useCase: UC09
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction ou Prestataire de la transaction
+      description: 'Entrée : reason. Réponse : 200 transaction (Annulee). Notes : Remboursement automatique si fonds réservés
+        ; En cours : passer par l''administrateur'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+              x-schema-status: indicative
+              required:
+              - reason
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Annulee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Annulee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : CANCEL_NOT_ALLOWED_IN_PROGRESS, INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/payments:
+    post:
+      operationId: postTransactionsByIdPayments
+      summary: Réserver les fonds
+      tags:
+      - transactions
+      x-ep: EP-055
+      x-useCase: UC10
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction
+      description: 'Entrée : operator, payerPhone?. Réponse : 202 {paymentId, status Initie, nextAction}. Notes : Asynchrone
+        ; Idempotency-Key obligatoire'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+        description: 'Même clé avec un corps différent : 422 IDEMPOTENCY_KEY_REUSED'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                operator: {}
+                payerPhone: {}
+              x-schema-status: indicative
+              required:
+              - operator
+      security:
+      - bearerAuth: []
+      responses:
+        '202':
+          description: 202 {paymentId, status Initie, nextAction}
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : PAYMENT_ALREADY_RESERVED, PAYMENT_NOT_ALLOWED_STATE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : AMOUNT_MISMATCH'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: 'Codes : OPERATOR_UNAVAILABLE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    get:
+      operationId: getTransactionsByIdPayments
+      summary: Lister les tentatives
+      tags:
+      - transactions
+      x-ep: EP-057
+      x-useCase: UC10
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction ou admin
+      description: 'Réponse : 200 payment[].'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 payment[]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 payment[]
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /payments/{id}:
+    get:
+      operationId: getPaymentsById
+      summary: Suivre un paiement
+      tags:
+      - payments
+      x-ep: EP-056
+      x-useCase: UC10
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction
+      description: 'Réponse : 200 {status, operator, amount}. Notes : Interrogation à intervalle en attendant le rappel'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {status, operator, amount}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {status, operator, amount}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /webhooks/payments/{operator}:
+    post:
+      operationId: postWebhooksPaymentsByOperator
+      summary: Recevoir le rappel du fournisseur
+      tags:
+      - webhooks
+      x-ep: EP-058
+      x-useCase: UC15
+      x-tranche: S3 Voie A et paiement
+      x-access: Partenaire (signature vérifiée)
+      description: 'Entrée : charge du fournisseur. Réponse : 200 (toujours, après enregistrement). Notes : Idempotent ; journalisé
+        dans EvenementWebhook ; effet : Initie → Reserve ou Echoue'
+      parameters:
+      - name: operator
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : charge du fournisseur'
+      security: []
+      responses:
+        '200':
+          description: 200 (toujours, après enregistrement)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 (toujours, après enregistrement)
+                x-schema-status: indicative
+        '401':
+          description: 'Codes : SIGNATURE_INVALID'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/payout:
+    get:
+      operationId: getTransactionsByIdPayout
+      summary: Lire le reversement
+      tags:
+      - transactions
+      x-ep: EP-059
+      x-useCase: UC16
+      x-tranche: S5 Clôture et admin
+      x-access: Prestataire de la transaction ou admin
+      description: 'Réponse : 200 {amount, commission, status}. Notes : Reversement envisagé selon le partenaire'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {amount, commission, status}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {amount, commission, status}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /admin/payouts/{id}/retry:
+    post:
+      operationId: postAdminPayoutsByIdRetry
+      summary: Relancer un reversement échoué
+      tags:
+      - admin
+      x-ep: EP-060
+      x-useCase: UC16
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : payouts.manage'
+      description: 'Réponse : 202.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '202':
+          description: '202'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : PAYOUT_NOT_RETRYABLE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/schedule:
+    post:
+      operationId: postTransactionsByIdSchedule
+      summary: Planifier la prestation
+      tags:
+      - transactions
+      x-ep: EP-061
+      x-useCase: UC11
+      x-tranche: S3 Voie A et paiement
+      x-access: Prestataire de la transaction
+      description: 'Entrée : slotId ou scheduledAt. Réponse : 200 transaction (Planifiee). Notes : Exige des fonds réservés'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : slotId ou scheduledAt'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Planifiee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Planifiee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : FUNDS_NOT_RESERVED, INVALID_TRANSITION, SLOT_TAKEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/start:
+    post:
+      operationId: postTransactionsByIdStart
+      summary: Démarrer la prestation
+      tags:
+      - transactions
+      x-ep: EP-062
+      x-useCase: UC11
+      x-tranche: S3 Voie A et paiement
+      x-access: Prestataire de la transaction
+      description: 'Réponse : 200 transaction (EnCours).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (EnCours)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (EnCours)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : FUNDS_NOT_RESERVED, INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: 'Codes : VERSION_CONFLICT'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/evidence:
+    post:
+      operationId: postTransactionsByIdEvidence
+      summary: Ajouter un justificatif ou un livrable
+      tags:
+      - transactions
+      x-ep: EP-063
+      x-useCase: UC11
+      x-tranche: S3 Voie A et paiement
+      x-access: Prestataire de la transaction ou Client de la transaction
+      description: 'Entrée : type, fileId ou link, description?. Réponse : 201 evidence.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: {}
+                description: {}
+              x-schema-status: indicative
+              required:
+              - type
+              description: 'Autres éléments de l''entrée (forme libre) : fileId ou link'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 evidence
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FILE_NOT_OWNED, FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+    get:
+      operationId: getTransactionsByIdEvidence
+      summary: Justificatifs
+      tags:
+      - transactions
+      x-ep: EP-068
+      x-useCase: UC12
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction ou Prestataire de la transaction ou admin
+      description: 'Réponse : 200 evidence[].'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 evidence[]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 evidence[]
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /transactions/{id}/complete:
+    post:
+      operationId: postTransactionsByIdComplete
+      summary: Déclarer la prestation terminée
+      tags:
+      - transactions
+      x-ep: EP-064
+      x-useCase: UC11
+      x-tranche: S3 Voie A et paiement
+      x-access: Prestataire de la transaction
+      description: 'Entrée : evidenceFileIds[]?, note?. Réponse : 200 transaction (Terminee). Notes : Ouvre la fenêtre de
+        contestation (72 h)'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : evidenceFileIds[]?'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Terminee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Terminee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : EVIDENCE_REQUIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /transactions:
+    get:
+      operationId: getTransactions
+      summary: Lister mes transactions
+      tags:
+      - transactions
+      x-ep: EP-065
+      x-useCase: UC12
+      x-tranche: S3 Voie A et paiement
+      x-access: Authentifié
+      description: 'Entrée : role (client, provider), status, type, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: role
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - client
+          - provider
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: type
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOf_transactionSummary'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /transactions/{id}:
+    get:
+      operationId: getTransactionsById
+      summary: Détail et suivi
+      tags:
+      - transactions
+      x-ep: EP-066
+      x-useCase: UC12
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction ou Prestataire de la transaction ou admin
+      description: 'Réponse : 200 transaction + frozenConditions + lines + payment summary + deadlines. Notes : ETag = version'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction + frozenConditions + lines + payment summary + deadlines
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction + frozenConditions + lines + payment summary + deadlines
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /transactions/{id}/history:
+    get:
+      operationId: getTransactionsByIdHistory
+      summary: Historique des statuts
+      tags:
+      - transactions
+      x-ep: EP-067
+      x-useCase: UC12
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction ou Prestataire de la transaction ou admin
+      description: 'Réponse : 200 statusHistory[].'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 statusHistory[]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 statusHistory[]
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /transactions/{id}/confirm:
+    post:
+      operationId: postTransactionsByIdConfirm
+      summary: Valider la prestation
+      tags:
+      - transactions
+      x-ep: EP-069
+      x-useCase: UC13
+      x-tranche: S3 Voie A et paiement
+      x-access: Client de la transaction
+      description: 'Réponse : 200 transaction (Confirmee). Notes : Libère les fonds (Reversement) ; ouvre les évaluations'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Confirmee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Confirmee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '412':
+          description: 'Codes : VERSION_CONFLICT'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/disputes:
+    post:
+      operationId: postTransactionsByIdDisputes
+      summary: Contester la prestation
+      tags:
+      - transactions
+      x-ep: EP-070
+      x-useCase: UC14
+      x-tranche: S5 Clôture et admin
+      x-access: Client de la transaction
+      description: 'Entrée : reason, description, evidenceFileIds[]?. Réponse : 201 dispute (Ouvert). Notes : Fonds gelés
+        ; conversation en lecture seule'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+                description: {}
+              x-schema-status: indicative
+              required:
+              - reason
+              - description
+              description: 'Autres éléments de l''entrée (forme libre) : evidenceFileIds[]?'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 dispute (Ouvert)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 dispute (Ouvert)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : DISPUTE_ALREADY_OPEN, DISPUTE_WINDOW_CLOSED, INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /disputes/{id}/evidence:
+    post:
+      operationId: postDisputesByIdEvidence
+      summary: Ajouter une preuve au litige
+      tags:
+      - disputes
+      x-ep: EP-071
+      x-useCase: UC14
+      x-tranche: S5 Clôture et admin
+      x-access: Client de la transaction ou Prestataire de la transaction
+      description: 'Entrée : fileId ou link, description?. Réponse : 201 evidence.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : fileId ou link'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 evidence
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 evidence
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : DISPUTE_CLOSED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /disputes/{id}:
+    get:
+      operationId: getDisputesById
+      summary: Lire un litige
+      tags:
+      - disputes
+      x-ep: EP-072
+      x-useCase: UC14
+      x-tranche: S5 Clôture et admin
+      x-access: Client de la transaction ou Prestataire de la transaction ou admin
+      description: 'Réponse : 200 dispute + evidence[].'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 dispute + evidence[]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 dispute + evidence[]
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /transactions/{id}/reviews:
+    post:
+      operationId: postTransactionsByIdReviews
+      summary: Évaluer l'autre partie
+      tags:
+      - transactions
+      x-ep: EP-073
+      x-useCase: UC17
+      x-tranche: S5 Clôture et admin
+      x-access: Client de la transaction ou Prestataire de la transaction
+      description: 'Entrée : rating 1..5, comment?. Réponse : 201 review. Notes : Une évaluation par auteur et par transaction'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : rating 1..5'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 review
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 review
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : REVIEW_ALREADY_SUBMITTED, TRANSACTION_NOT_CONFIRMED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/disputes:
+    get:
+      operationId: getAdminDisputes
+      summary: Lister les litiges
+      tags:
+      - admin
+      x-ep: EP-074
+      x-useCase: UC18
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : disputes.resolve'
+      description: 'Entrée : status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/disputes/{id}/take:
+    post:
+      operationId: postAdminDisputesByIdTake
+      summary: Prendre un litige en charge
+      tags:
+      - admin
+      x-ep: EP-075
+      x-useCase: UC18
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : disputes.resolve'
+      description: 'Réponse : 200 dispute (EnInstruction).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 dispute (EnInstruction)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 dispute (EnInstruction)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : DISPUTE_ALREADY_TAKEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/disputes/{id}/conversation:
+    get:
+      operationId: getAdminDisputesByIdConversation
+      summary: Lire la conversation du litige
+      tags:
+      - admin
+      x-ep: EP-076
+      x-useCase: UC18
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : disputes.resolve'
+      description: 'Entrée : cursor. Réponse : 200 message[]. Notes : Chaque lecture est journalisée'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 message[]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 message[]
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/disputes/{id}/decide:
+    post:
+      operationId: postAdminDisputesByIdDecide
+      summary: Rendre la décision
+      tags:
+      - admin
+      x-ep: EP-077
+      x-useCase: UC18
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : disputes.resolve'
+      description: 'Entrée : decision, refundedAmount?, comment. Réponse : 200 dispute (Decide). Notes : Pilote paiement et
+        reversement ; transaction → Cloturee'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision: {}
+                refundedAmount: {}
+                comment: {}
+              x-schema-status: indicative
+              required:
+              - decision
+              - comment
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 dispute (Decide)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 dispute (Decide)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : DISPUTE_NOT_IN_PROGRESS'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : REFUND_EXCEEDS_PAID'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /admin/transactions/{id}/cancel:
+    post:
+      operationId: postAdminTransactionsByIdCancel
+      summary: Annuler une transaction en cours
+      tags:
+      - admin
+      x-ep: EP-078
+      x-useCase: UC18
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : disputes.resolve'
+      description: 'Entrée : decision, refundedAmount?, comment. Réponse : 200 transaction (Annulee). Notes : V1 : l''annulation
+        d''accord entre les parties passe par l''administrateur (écart avec la matrice, à valider)'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision: {}
+                refundedAmount: {}
+                comment: {}
+              x-schema-status: indicative
+              required:
+              - decision
+              - comment
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction (Annulee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction (Annulee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/users:
+    get:
+      operationId: getAdminUsers
+      summary: Lister les utilisateurs
+      tags:
+      - admin
+      x-ep: EP-079
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : users.manage'
+      description: 'Entrée : q, status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/users/{id}/suspend:
+    post:
+      operationId: postAdminUsersByIdSuspend
+      summary: Suspendre un compte
+      tags:
+      - admin
+      x-ep: EP-080
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : users.manage'
+      description: 'Entrée : reason. Réponse : 200 user (Suspendu). Notes : Révoque les jetons ; offres masquées'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+              x-schema-status: indicative
+              required:
+              - reason
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 user (Suspendu)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 user (Suspendu)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : CANNOT_SUSPEND_SELF'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/users/{id}/reactivate:
+    post:
+      operationId: postAdminUsersByIdReactivate
+      summary: Réactiver un compte
+      tags:
+      - admin
+      x-ep: EP-081
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : users.manage'
+      description: 'Réponse : 200 user.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 user
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 user
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/users/{id}/permissions:
+    put:
+      operationId: putAdminUsersByIdPermissions
+      summary: Accorder ou retirer des permissions
+      tags:
+      - admin
+      x-ep: EP-082
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : permissions.manage'
+      description: 'Entrée : codes[]. Réponse : 200 permissions. Notes : Journalisé'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : codes[]'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 permissions
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 permissions
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : UNKNOWN_PERMISSION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /admin/verifications:
+    get:
+      operationId: getAdminVerifications
+      summary: Lister les vérifications à traiter
+      tags:
+      - admin
+      x-ep: EP-083
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : profiles.verify'
+      description: 'Entrée : status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/verifications/{id}/approve:
+    post:
+      operationId: postAdminVerificationsByIdApprove
+      summary: Valider une vérification
+      tags:
+      - admin
+      x-ep: EP-084
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : profiles.verify'
+      description: 'Réponse : 200 verification. Notes : Recalcule le niveau du profil'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 verification
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 verification
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : VERIFICATION_NOT_PENDING'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/verifications/{id}/reject:
+    post:
+      operationId: postAdminVerificationsByIdReject
+      summary: Refuser une vérification
+      tags:
+      - admin
+      x-ep: EP-085
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : profiles.verify'
+      description: 'Entrée : reason. Réponse : 200 verification.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+              x-schema-status: indicative
+              required:
+              - reason
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 verification
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 verification
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : VERIFICATION_NOT_PENDING'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/offers:
+    get:
+      operationId: getAdminOffers
+      summary: Offres internationales à valider
+      tags:
+      - admin
+      x-ep: EP-086
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : international.validate'
+      description: 'Entrée : status, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/offers/{id}/international/approve:
+    post:
+      operationId: postAdminOffersByIdInternationalApprove
+      summary: Valider l'ouverture internationale
+      tags:
+      - admin
+      x-ep: EP-087
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : international.validate'
+      description: 'Réponse : 200 offer.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 offer
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 offer
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/offers/{id}/international/reject:
+    post:
+      operationId: postAdminOffersByIdInternationalReject
+      summary: Refuser l'ouverture internationale
+      tags:
+      - admin
+      x-ep: EP-088
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : international.validate'
+      description: 'Entrée : reason. Réponse : 200 offer.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {}
+              x-schema-status: indicative
+              required:
+              - reason
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 offer
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 offer
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/categories:
+    post:
+      operationId: postAdminCategories
+      summary: Créer une catégorie
+      tags:
+      - admin
+      x-ep: EP-089
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : categories.manage'
+      description: 'Entrée : parentId?, name, order, family?, minVerificationLevel. Réponse : 201 category. Notes : Famille
+        héritée du parent'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parentId:
+                  type: string
+                  format: uuid
+                name: {}
+                order: {}
+                family: {}
+                minVerificationLevel: {}
+              x-schema-status: indicative
+              required:
+              - name
+              - order
+              - minVerificationLevel
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 category
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 category
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : DUPLICATE_NAME'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/categories/{id}:
+    patch:
+      operationId: patchAdminCategoriesById
+      summary: Modifier ou désactiver une catégorie
+      tags:
+      - admin
+      x-ep: EP-090
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : categories.manage'
+      description: 'Entrée : name?, order?, active?, minVerificationLevel?. Réponse : 200 category.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: {}
+                order: {}
+                active: {}
+                minVerificationLevel: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 category
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 category
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : CATEGORY_IN_USE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/categories/{id}/attributes:
+    post:
+      operationId: postAdminCategoriesByIdAttributes
+      summary: Ajouter une caractéristique
+      tags:
+      - admin
+      x-ep: EP-091
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : categories.manage'
+      description: 'Entrée : name, valueType, required, options? (tableau de textes, requis si valueType = Liste). Réponse
+        : 201 attributeDefinition.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: {}
+                valueType: {}
+                required: {}
+              x-schema-status: indicative
+              required:
+              - name
+              - valueType
+              - required
+              description: 'Autres éléments de l''entrée (forme libre) : options? (tableau de textes, requis si valueType
+                = Liste)'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 attributeDefinition
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 attributeDefinition
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/locations:
+    post:
+      operationId: postAdminLocations
+      summary: Ajouter une localité
+      tags:
+      - admin
+      x-ep: EP-092
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : locations.manage'
+      description: 'Entrée : countryCode, city, district?, latitude, longitude. Réponse : 201 location.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                countryCode: {}
+                city: {}
+                district: {}
+                latitude: {}
+                longitude: {}
+              x-schema-status: indicative
+              required:
+              - countryCode
+              - city
+              - latitude
+              - longitude
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 location
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 location
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : DUPLICATE_LOCATION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /admin/journal:
+    get:
+      operationId: getAdminJournal
+      summary: Consulter le journal d'actions
+      tags:
+      - admin
+      x-ep: EP-093
+      x-useCase: UC19
+      x-tranche: S5 Clôture et admin
+      x-access: 'Admin : journal.read'
+      description: 'Entrée : actorId?, action?, objectType?, from?, to?, limit, cursor. Réponse : 200 {items, nextCursor}.
+        Notes : Lecture seule ; aucune route de modification'
+      parameters:
+      - name: actorId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: uuid
+      - name: action
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: objectType
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/parameters:
+    get:
+      operationId: getAdminParameters
+      summary: Lire les paramètres
+      tags:
+      - admin
+      x-ep: EP-094
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : settings.manage'
+      description: 'Réponse : 200 parameter[].'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 parameter[]
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 parameter[]
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /admin/parameters/{key}:
+    patch:
+      operationId: patchAdminParametersByKey
+      summary: Modifier un paramètre
+      tags:
+      - admin
+      x-ep: EP-095
+      x-useCase: UC19
+      x-tranche: S1 Socle
+      x-access: 'Admin : settings.manage'
+      description: 'Entrée : value. Réponse : 200 parameter. Notes : S''applique aux nouvelles demandes et transactions ;
+        journalisé'
+      parameters:
+      - name: key
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value: {}
+              x-schema-status: indicative
+              required:
+              - value
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 parameter
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : VALIDATION_FAILED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /transactions/{id}/handover:
+    patch:
+      operationId: patchTransactionsByIdHandover
+      summary: Choisir ou changer le mode de remise
+      tags:
+      - transactions
+      x-ep: EP-096
+      x-useCase: UC20
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Client de la transaction
+      description: 'Entrée : mode (Retrait, Livraison), deliveryAddress?, deliveryLocationId?. Réponse : 200 transaction.
+        Notes : Possible avant « En cours »'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deliveryAddress: {}
+                deliveryLocationId:
+                  type: string
+                  format: uuid
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : mode (Retrait, Livraison)'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 transaction
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : HANDOVER_LOCKED, INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /transactions/{id}/delivery-code:
+    get:
+      operationId: getTransactionsByIdDeliverycode
+      summary: Afficher le code de remise
+      tags:
+      - transactions
+      x-ep: EP-097
+      x-useCase: UC20
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Client de la transaction
+      description: 'Réponse : 200 {code, expiresAt}. Notes : Le code n''est affiché qu''au client'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {code, expiresAt}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {code, expiresAt}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: 'Codes : NOT_A_DELIVERY'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /transactions/{id}/ready:
+    post:
+      operationId: postTransactionsByIdReady
+      summary: Déclarer l'article prêt
+      tags:
+      - transactions
+      x-ep: EP-098
+      x-useCase: UC21
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Prestataire de la transaction (vendeur)
+      description: 'Entrée : pickupNote?. Réponse : 201 delivery (demande de livraison diffusée). Notes : Crée la transaction
+        de livraison et notifie les livreurs dont la couverture inclut le point de ramassage'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pickupNote: {}
+              x-schema-status: indicative
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 delivery (demande de livraison diffusée)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 delivery (demande de livraison diffusée)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : FUNDS_NOT_RESERVED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : HANDOVER_IS_PICKUP, NOT_A_SALE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /deliveries/available:
+    get:
+      operationId: getDeliveriesAvailable
+      summary: Livraisons disponibles (livreur)
+      tags:
+      - deliveries
+      x-ep: EP-099
+      x-useCase: UC22
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Prestataire (famille Livraison)
+      description: 'Entrée : limit, cursor. Réponse : 200 {items, nextCursor}. Notes : Filtrées par couverture au point de
+        ramassage'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /deliveries/{id}/claim:
+    post:
+      operationId: postDeliveriesByIdClaim
+      summary: Prendre en charge une livraison
+      tags:
+      - deliveries
+      x-ep: EP-100
+      x-useCase: UC22
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Prestataire livreur
+      description: 'Réponse : 200 delivery. Notes : Le premier qui accepte la prend'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 delivery
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 delivery
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : NOT_ELIGIBLE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : ALREADY_CLAIMED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '410':
+          description: 'Codes : DELIVERY_EXPIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /deliveries/{id}/pickup:
+    post:
+      operationId: postDeliveriesByIdPickup
+      summary: Confirmer le ramassage
+      tags:
+      - deliveries
+      x-ep: EP-101
+      x-useCase: UC22
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Livreur de la livraison
+      description: 'Réponse : 200 delivery (EnCours).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 delivery (EnCours)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 delivery (EnCours)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /deliveries/{id}/deliver:
+    post:
+      operationId: postDeliveriesByIdDeliver
+      summary: Déclarer la livraison effectuée
+      tags:
+      - deliveries
+      x-ep: EP-102
+      x-useCase: UC22
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Livreur de la livraison
+      description: 'Réponse : 200 delivery (Terminee).'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 delivery (Terminee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 delivery (Terminee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: 'Codes : INVALID_TRANSITION'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /deliveries/{id}/confirm:
+    post:
+      operationId: postDeliveriesByIdConfirm
+      summary: Confirmer la remise par code
+      tags:
+      - deliveries
+      x-ep: EP-103
+      x-useCase: UC22
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Livreur de la livraison
+      description: 'Entrée : code. Réponse : 200 delivery (Confirmee). Notes : Essais limités ; la vente passe à Terminée'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: {}
+              x-schema-status: indicative
+              required:
+              - code
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 delivery (Confirmee)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 delivery (Confirmee)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '410':
+          description: 'Codes : CODE_EXPIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : INVALID_CODE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '423':
+          description: 'Codes : CODE_LOCKED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /conversations:
+    get:
+      operationId: getConversations
+      summary: Lister mes conversations
+      tags:
+      - conversations
+      x-ep: EP-104
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié
+      description: 'Entrée : limit, cursor. Réponse : 200 {items[{conversation, unreadCount, lastMessage}], nextCursor}.'
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items[{conversation, unreadCount, lastMessage}], nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items[{conversation, unreadCount, lastMessage}], nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /requests/{id}/conversations:
+    post:
+      operationId: postRequestsByIdConversations
+      summary: Ouvrir une conversation sur une demande
+      tags:
+      - requests
+      x-ep: EP-105
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Prestataire éligible, ou demandeur avec un prestataire ayant proposé
+      description: 'Entrée : providerId? (côté demandeur). Réponse : 201 conversation (ou 200 si existante). Notes : Aucune
+        conversation n''est créée par une simple recherche'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: {}
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : providerId? (côté demandeur)'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 conversation (ou 200 si existante)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 conversation (ou 200 si existante)
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : NOT_ELIGIBLE'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : REQUEST_NOT_OPEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /conversations/{id}/messages:
+    get:
+      operationId: getConversationsByIdMessages
+      summary: Lire les messages
+      tags:
+      - conversations
+      x-ep: EP-106
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié (participant)
+      description: 'Entrée : after?, limit, cursor. Réponse : 200 {items, nextCursor}. Notes : Repli par interrogation si
+        le temps réel est indisponible'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: after
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {items, nextCursor}
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    post:
+      operationId: postConversationsByIdMessages
+      summary: Envoyer un message
+      tags:
+      - conversations
+      x-ep: EP-107
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié (participant)
+      description: 'Entrée : type (Texte, Fichier), content?, fileId?. Réponse : 201 message. Notes : Messages système générés
+        par le backend uniquement'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content: {}
+                fileId:
+                  type: string
+                  format: uuid
+              x-schema-status: indicative
+              description: 'Autres éléments de l''entrée (forme libre) : type (Texte, Fichier)'
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: 201 message
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 201 message
+                x-schema-status: indicative
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: 'Droit manquant ; Codes : FORBIDDEN'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '409':
+          description: 'Codes : CONVERSATION_READ_ONLY'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '422':
+          description: 'VALIDATION_FAILED, détail dans `errors` ; Codes : VALIDATION_FAILED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /conversations/{id}/read:
+    post:
+      operationId: postConversationsByIdRead
+      summary: Marquer comme lu
+      tags:
+      - conversations
+      x-ep: EP-108
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié (participant)
+      description: 'Entrée : upToMessageId. Réponse : 204.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                upToMessageId:
+                  type: string
+                  format: uuid
+              x-schema-status: indicative
+              required:
+              - upToMessageId
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /notifications:
+    get:
+      operationId: getNotifications
+      summary: Lister mes notifications
+      tags:
+      - notifications
+      x-ep: EP-109
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié
+      description: 'Entrée : unread?, limit, cursor. Réponse : 200 {items, nextCursor}.'
+      parameters:
+      - name: unread
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {items, nextCursor}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageOf_notification'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /notifications/unread-count:
+    get:
+      operationId: getNotificationsUnreadcount
+      summary: Nombre de notifications non lues
+      tags:
+      - notifications
+      x-ep: EP-110
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié
+      description: 'Réponse : 200 {count}.'
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: 200 {count}
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unreadCount'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /notifications/{id}/read:
+    post:
+      operationId: postNotificationsByIdRead
+      summary: Marquer une notification comme lue
+      tags:
+      - notifications
+      x-ep: EP-111
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié
+      description: 'Réponse : 204.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /notifications/read-all:
+    post:
+      operationId: postNotificationsReadall
+      summary: Tout marquer comme lu
+      tags:
+      - notifications
+      x-ep: EP-112
+      x-useCase: F18
+      x-tranche: S6 Notifications, livraison, messagerie
+      x-access: Authentifié
+      description: 'Réponse : 204.'
+      security:
+      - bearerAuth: []
+      responses:
+        '204':
+          description: '204'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationFailed'
+  /health:
+    get:
+      operationId: getHealth
+      summary: Vérifier l'état du service
+      tags:
+      - health
+      x-ep: EP-113
+      x-useCase: —
+      x-tranche: S1 Socle
+      x-access: Public
+      description: 'Réponse : 200 {status}. Notes : Supervision, non lié à un cas d''utilisation'
+      security: []
+      responses:
+        '200':
+          description: 200 {status}
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 200 {status}
+                x-schema-status: indicative
+  /files/content/{token}:
+    get:
+      operationId: getFilesContentByToken
+      summary: Servir un fichier par lien signé (interne)
+      tags:
+      - files
+      x-ep: EP-114
+      x-useCase: UC03
+      x-tranche: S1 Socle
+      x-access: Public (jeton signé à durée courte)
+      description: 'Entrée : token. Réponse : 200 contenu du fichier. Notes : Appelé via l''URL renvoyée par GET /files/{id}/url
+        ; en-têtes anti-mise en cache'
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+      security: []
+      responses:
+        '200':
+          description: 200 contenu du fichier
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: 'Codes : TOKEN_EXPIRED'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: 'Codes : NOT_FOUND'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Money:
+      type: object
+      required:
+      - amount
+      - currency
+      properties:
+        amount:
+          type: integer
+          description: Plus petite unité monétaire entière (pas de décimales en XAF et XOF)
+        currency:
+          type: string
+          pattern: ^[A-Z]{3}$
+          description: ISO 4217 (XAF ou XOF en V1)
+    Problem:
+      type: object
+      description: Erreur au format problem+json (RFC 9457). Les clients n'affichent jamais `detail` tel quel.
+      required:
+      - type
+      - title
+      - status
+      - code
+      - traceId
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Code stable, voir x-error-codes
+        detail:
+          type: string
+        traceId:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              code:
+                type: string
+    StatutCompte:
+      type: string
+      enum:
+      - Actif
+      - Suspendu
+      - Supprime
+    Capacite:
+      type: string
+      enum:
+      - Client
+      - Prestataire
+    StatutProfil:
+      type: string
+      enum:
+      - Brouillon
+      - Actif
+      - Suspendu
+    Niveau:
+      type: string
+      enum:
+      - N0
+      - N1
+      - N2
+      - N3
+    ModeCouverture:
+      type: string
+      enum:
+      - Quartier
+      - Ville
+      - Rayon
+      - Pays
+    LocalisationActive:
+      type: string
+      enum:
+      - Travail
+      - Domicile
+    TypeVerification:
+      type: string
+      enum:
+      - Telephone
+      - Identite
+      - Activite
+      - Autre
+    EtatValidation:
+      type: string
+      enum:
+      - EnAttente
+      - Validee
+      - Rejetee
+    FamilleService:
+      type: string
+      enum:
+      - Numerique
+      - Domicile
+      - Travaux
+      - Vente
+      - Livraison
+    TypeValeur:
+      type: string
+      enum:
+      - Texte
+      - Nombre
+      - Booleen
+      - Liste
+    TypeOffre:
+      type: string
+      enum:
+      - Service
+      - Bien
+    Modalite:
+      type: string
+      enum:
+      - ADistance
+      - ADomicile
+      - EnLocal
+    ModePrix:
+      type: string
+      enum:
+      - Fixe
+      - Horaire
+      - SurDevis
+    Portee:
+      type: string
+      enum:
+      - Locale
+      - Internationale
+    StatutOffre:
+      type: string
+      enum:
+      - Brouillon
+      - Publiee
+      - Desactivee
+    EtatCreneau:
+      type: string
+      enum:
+      - Libre
+      - Reserve
+    StatutDemande:
+      type: string
+      enum:
+      - Ouverte
+      - Attribuee
+      - Expiree
+      - Fermee
+    StatutProposition:
+      type: string
+      enum:
+      - Active
+      - Retiree
+      - Refusee
+      - Retenue
+      - NonRetenue
+    TypeTransaction:
+      type: string
+      enum:
+      - Prestation
+      - Vente
+      - Livraison
+    OrigineTransaction:
+      type: string
+      enum:
+      - Offre
+      - Demande
+    StatutTransaction:
+      type: string
+      enum:
+      - EnAttente
+      - Acceptee
+      - Planifiee
+      - EnCours
+      - Terminee
+      - Confirmee
+      - Cloturee
+      - Annulee
+      - Contestee
+    ModeRemise:
+      type: string
+      enum:
+      - Retrait
+      - Livraison
+    StatutConversation:
+      type: string
+      enum:
+      - Ouverte
+      - LectureSeule
+    TypeMessage:
+      type: string
+      enum:
+      - Texte
+      - Fichier
+      - Systeme
+    TypeJustificatif:
+      type: string
+      enum:
+      - Photo
+      - Document
+      - Livrable
+      - Autre
+    StatutPaiement:
+      type: string
+      enum:
+      - Initie
+      - Reserve
+      - Libere
+      - Rembourse
+      - Echoue
+    StatutReversement:
+      type: string
+      enum:
+      - EnAttente
+      - Effectue
+      - Echoue
+    MotifLitige:
+      type: string
+      enum:
+      - NonConforme
+      - Retard
+      - Absence
+      - Autre
+    StatutLitige:
+      type: string
+      enum:
+      - Ouvert
+      - EnInstruction
+      - Decide
+    DecisionLitige:
+      type: string
+      enum:
+      - LiberationTotale
+      - LiberationPartielle
+      - Remboursement
+    StatutEvaluation:
+      type: string
+      enum:
+      - Publiee
+      - Masquee
+    Canal:
+      type: string
+      enum:
+      - Push
+      - Email
+      - InApp
+    TypeNotification:
+      type: string
+      enum:
+      - NouvelleDemande
+      - NouvelleProposition
+      - PropositionRetenue
+      - PropositionNonRetenue
+      - CommandeRecue
+      - CommandeAcceptee
+      - FondsReserves
+      - PrestationTerminee
+      - PrestationConfirmee
+      - LitigeOuvert
+      - LitigeDecide
+      - NouveauMessage
+      - ProfilVerifie
+    StatutEnvoi:
+      type: string
+      enum:
+      - EnAttente
+      - Envoye
+      - Echec
+    Visibilite:
+      type: string
+      enum:
+      - Prive
+      - Public
+    user:
+      type: object
+      required:
+      - id
+      - phone
+      - displayName
+      - language
+      - phoneVerified
+      - emailVerified
+      - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identifiant (UUID v7)
+        phone:
+          type: string
+          description: E.164, 16 caractères au plus
+        email:
+          type: string
+          description: 254 caractères au plus
+        displayName:
+          type: string
+          description: 60 caractères au plus ; visible des autres utilisateurs
+        language:
+          type: string
+          maxLength: 2
+          description: ISO 639-1, défaut fr
+        countryCode:
+          type: string
+          maxLength: 2
+          description: Pays de résidence (ISO 3166-1 alpha-2)
+        phoneVerified:
+          type: boolean
+        emailVerified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          description: UTC
+    account:
+      type: object
+      required:
+      - user
+      - capacities
+      - providerStatus
+      - permissions
+      properties:
+        user:
+          $ref: '#/components/schemas/user'
+        capacities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Capacite'
+          description: Client toujours présent ; Prestataire dérivé du profil actif (D19)
+        providerStatus:
+          oneOf:
+          - $ref: '#/components/schemas/StatutProfil'
+          - type: 'null'
+          description: null = aucun profil prestataire ; la bascule Client / Prestataire n'est proposée que si Actif
+        permissions:
+          type: array
+          items:
+            type: string
+          description: Codes de permission administrateur ; [] pour un compte ordinaire
+    tokenPair:
+      type: object
+      required:
+      - accessToken
+      - refreshToken
+      - expiresIn
+      properties:
+        accessToken:
+          type: string
+          description: JWT, 15 minutes
+        refreshToken:
+          type: string
+          description: À usage unique (rotation), 30 jours
+        expiresIn:
+          type: integer
+          description: Durée de vie du jeton d'accès en secondes (900)
+    location:
+      type: object
+      required:
+      - id
+      - city
+      - countryCode
+      properties:
+        id:
+          type: string
+          format: uuid
+        city:
+          type: string
+          maxLength: 80
+          description: Ville
+        district:
+          type: string
+          maxLength: 80
+          description: Quartier ; absent = niveau ville
+        countryCode:
+          type: string
+          maxLength: 2
+    category:
+      type: object
+      required:
+      - id
+      - name
+      - order
+      - active
+      - family
+      - minVerificationLevel
+      - children
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 80
+        order:
+          type: integer
+          description: Ordre d'affichage
+        active:
+          type: boolean
+          description: false seulement avec includeInactive (EP-021)
+        family:
+          allOf:
+          - $ref: '#/components/schemas/FamilleService'
+          description: Héritée du parent
+        minVerificationLevel:
+          allOf:
+          - $ref: '#/components/schemas/Niveau'
+          description: Niveau requis pour publier ou répondre
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/category'
+          description: '[] pour une catégorie feuille'
+    attributeDefinition:
+      type: object
+      required:
+      - id
+      - name
+      - valueType
+      - required
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 60
+          description: Unique dans la catégorie
+        valueType:
+          $ref: '#/components/schemas/TypeValeur'
+        required:
+          type: boolean
+        options:
+          type: array
+          items:
+            type: string
+          description: Valeurs possibles ; requis si valueType = Liste (500 caractères au total au plus)
+    providerSummary:
+      type: object
+      required:
+      - id
+      - businessName
+      - level
+      - rating
+      - reviewCount
+      - city
+      - quartier
+      - completionRate
+      - avatarUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identifiant du profil (= identifiant de l'utilisateur)
+        businessName:
+          type: string
+          maxLength: 80
+        level:
+          $ref: '#/components/schemas/Niveau'
+        rating:
+          type:
+          - number
+          - 'null'
+          description: 1 à 5, deux décimales ; null sans avis
+        reviewCount:
+          type: integer
+        city:
+          type:
+          - string
+          - 'null'
+          description: Niveau quartier au plus, jamais le domicile précis
+        quartier:
+          type:
+          - string
+          - 'null'
+        completionRate:
+          type:
+          - number
+          - 'null'
+          description: Taux de prestations achevées, 0 à 100 (OP-24) ; EP-037 seulement
+        avatarUrl:
+          type:
+          - string
+          - 'null'
+          description: Lien signé de courte durée (EP-114) ; null tant que la photo de profil n'existe pas (OP-30)
+    offerSummary:
+      type: object
+      required:
+      - id
+      - title
+      - categoryName
+      - type
+      - modality
+      - pricingMode
+      - price
+      - photoUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          maxLength: 120
+        categoryName:
+          type:
+          - string
+          - 'null'
+        type:
+          $ref: '#/components/schemas/TypeOffre'
+        modality:
+          $ref: '#/components/schemas/Modalite'
+        pricingMode:
+          $ref: '#/components/schemas/ModePrix'
+        price:
+          oneOf:
+          - $ref: '#/components/schemas/Money'
+          - type: 'null'
+          description: null si pricingMode = SurDevis
+        photoUrl:
+          type:
+          - string
+          - 'null'
+          description: Lien signé de courte durée (EP-114) ; null tant que les photos d'offre n'existent pas (OP-30)
+    offerSearchItem:
+      type: object
+      required:
+      - offer
+      - provider
+      - distanceKm
+      properties:
+        offer:
+          $ref: '#/components/schemas/offerSummary'
+        provider:
+          allOf:
+          - $ref: '#/components/schemas/providerSummary'
+          description: Sans completionRate
+        distanceKm:
+          type:
+          - number
+          - 'null'
+          description: null sans point de référence (ni locationId ni lat+lng)
+    offerDetail:
+      type: object
+      required:
+      - offer
+      - provider
+      - items
+      - freeSlots
+      properties:
+        offer:
+          type: object
+          description: 'offerSummary + champs : Ajoute description (string 2000), photoUrls (string[]), attributes ([{definitionId,
+            name, value}]) et status (StatutOffre, présent pour le propriétaire seulement)'
+        provider:
+          allOf:
+          - $ref: '#/components/schemas/providerSummary'
+          description: Avec completionRate et avatarUrl
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/offerItem'
+          description: '[] si l''offre n''est pas un bien'
+        freeSlots:
+          type: array
+          items:
+            $ref: '#/components/schemas/slot'
+          description: Créneaux libres du profil ; [] si l'offre ne se fait pas sur rendez-vous
+    offerItem:
+      type: object
+      required:
+      - id
+      - designation
+      - price
+      - available
+      - photoUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+        designation:
+          type: string
+          maxLength: 120
+        price:
+          allOf:
+          - $ref: '#/components/schemas/Money'
+          description: '> 0'
+        available:
+          type: boolean
+          description: Le stock n'est pas géré (D13)
+        photoUrl:
+          type:
+          - string
+          - 'null'
+          description: Lien signé (EP-114)
+    slot:
+      type: object
+      required:
+      - id
+      - start
+      - end
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: date-time
+          description: UTC
+        end:
+          type: string
+          format: date-time
+          description: UTC, après start
+    providerProfile:
+      type: object
+      required:
+      - userId
+      - businessName
+      - description
+      - level
+      - status
+      - portfolioUrl
+      - videoUrl
+      - workLocation
+      - homeLocation
+      - activeLocation
+      - coverageMode
+      - radiusKm
+      - workLandmark
+      - domains
+      - rating
+      - reviewCount
+      - completionRate
+      - profileCompleteness
+      properties:
+        userId:
+          type: string
+          format: uuid
+        businessName:
+          type: string
+          maxLength: 80
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 1000
+        level:
+          $ref: '#/components/schemas/Niveau'
+        status:
+          $ref: '#/components/schemas/StatutProfil'
+        portfolioUrl:
+          type:
+          - string
+          - 'null'
+          maxLength: 300
+        videoUrl:
+          type:
+          - string
+          - 'null'
+          maxLength: 300
+        workLocation:
+          oneOf:
+          - $ref: '#/components/schemas/location'
+          - type: 'null'
+        homeLocation:
+          oneOf:
+          - $ref: '#/components/schemas/location'
+          - type: 'null'
+          description: Niveau quartier ; renvoyé au propriétaire seulement (jamais en public)
+        activeLocation:
+          allOf:
+          - $ref: '#/components/schemas/LocalisationActive'
+          description: Doit pointer une adresse renseignée
+        coverageMode:
+          $ref: '#/components/schemas/ModeCouverture'
+        radiusKm:
+          type:
+          - integer
+          - 'null'
+          description: 1 à 500 ; obligatoire en mode Rayon
+        workLandmark:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+          description: Visible du client après acceptation seulement
+        domains:
+          type: object
+          description: '[{id, name}] : 1 à 5 catégories'
+        rating:
+          type:
+          - number
+          - 'null'
+        reviewCount:
+          type: integer
+        completionRate:
+          type:
+          - number
+          - 'null'
+          description: Taux de prestations achevées, 0 à 100 (OP-24)
+        profileCompleteness:
+          type: number
+          description: Complétude du profil, 0 à 100 (OP-24)
+    verification:
+      type: object
+      required:
+      - id
+      - type
+      - status
+      - rejectionReason
+      - requestedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/TypeVerification'
+        status:
+          $ref: '#/components/schemas/EtatValidation'
+        rejectionReason:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+          description: Présent si Rejetee
+        requestedAt:
+          type: string
+          format: date
+    notification:
+      type: object
+      required:
+      - id
+      - type
+      - content
+      - read
+      - createdAt
+      - transactionId
+      - requestId
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/TypeNotification'
+        content:
+          type: string
+          maxLength: 500
+          description: Rendu dans la langue du destinataire
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        transactionId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        requestId:
+          type:
+          - string
+          - 'null'
+          format: uuid
+    unreadCount:
+      type: object
+      required:
+      - count
+      properties:
+        count:
+          type: integer
+    transactionSummary:
+      type: object
+      required:
+      - id
+      - reference
+      - type
+      - origin
+      - title
+      - status
+      - counterpartName
+      - total
+      - createdAt
+      - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference:
+          type: string
+          maxLength: 20
+          description: Ex. SN-2026-000123
+        type:
+          $ref: '#/components/schemas/TypeTransaction'
+        origin:
+          $ref: '#/components/schemas/OrigineTransaction'
+        title:
+          type: string
+          description: Titre de l'offre (voie A) ou de la demande (voie B), figé à l'accord
+        status:
+          $ref: '#/components/schemas/StatutTransaction'
+        counterpartName:
+          type:
+          - string
+          - 'null'
+          description: Nom affiché de l'autre partie
+        total:
+          oneOf:
+          - $ref: '#/components/schemas/Money'
+          - type: 'null'
+          description: Null tant que le total n'est pas figé
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    requestInput:
+      type: object
+      required:
+      - categoryId
+      - title
+      - description
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+          description: Catégorie feuille active (CATEGORY_NOT_LEAF sinon)
+        locationId:
+          type: string
+          format: uuid
+          description: Vide = à distance ou pays
+        title:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 2000
+        deadline:
+          type: string
+          format: date
+          description: yyyy-MM-dd
+        budget:
+          allOf:
+          - $ref: '#/components/schemas/Money'
+          description: amount > 0
+    requestCreated:
+      type: object
+      required:
+      - requestId
+      - recipientCount
+      properties:
+        requestId:
+          type: string
+          format: uuid
+        recipientCount:
+          type: integer
+          description: Nombre réel de prestataires notifiés (D07)
+    requestFeedItem:
+      type: object
+      required:
+      - request
+      - proposalCount
+      - maxProposals
+      properties:
+        request:
+          type: object
+          description: '{id, title, description, categoryId, categoryName, location, deadline, budget, expiresAt, createdAt}
+            : location, deadline et budget peuvent être null ; l''identité et les coordonnées du client ne sont jamais renvoyées'
+        proposalCount:
+          type: integer
+        maxProposals:
+          type: integer
+          description: Copie du paramètre maxPropositionsParDemande
+    problem:
+      type: object
+      required:
+      - type
+      - title
+      - status
+      - code
+      - traceId
+      properties:
+        type:
+          type: string
+          description: URI du type
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Stable, voir feuille Erreurs
+        detail:
+          type: string
+          description: Jamais affiché tel quel par les clients
+        traceId:
+          type: string
+        errors:
+          type: object
+          description: '[{field, code}] : Erreurs de validation (422)'
+    PageOf_notification:
+      type: object
+      required:
+      - items
+      - nextCursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/notification'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Opaque ; null = dernière page
+    PageOf_offerSearchItem:
+      type: object
+      required:
+      - items
+      - nextCursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/offerSearchItem'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Opaque ; null = dernière page
+    PageOf_offerSummary:
+      type: object
+      required:
+      - items
+      - nextCursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/offerSummary'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Opaque ; null = dernière page
+    PageOf_requestFeedItem:
+      type: object
+      required:
+      - items
+      - nextCursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/requestFeedItem'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Opaque ; null = dernière page
+    PageOf_transactionSummary:
+      type: object
+      required:
+      - items
+      - nextCursor
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/transactionSummary'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+          description: Opaque ; null = dernière page
+  responses:
+    Unauthorized:
+      description: Jeton absent, expiré ou révoqué (UNAUTHENTICATED, TOKEN_EXPIRED, TOKEN_REVOKED)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Droit manquant (FORBIDDEN)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    ValidationFailed:
+      description: Entrée invalide (VALIDATION_FAILED), détail dans `errors`
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  x-error-codes:
+    VALIDATION_FAILED:
+      status: 422
+      title: Données invalides
+      when: Champ manquant ou hors format ; détail dans errors[]
+    UNAUTHENTICATED:
+      status: 401
+      title: Authentification requise
+      when: Jeton absent ou invalide
+    TOKEN_EXPIRED:
+      status: 401
+      title: Jeton expiré
+      when: À renouveler via /auth/refresh
+    TOKEN_REVOKED:
+      status: 401
+      title: Jeton révoqué
+      when: Déconnexion ou réutilisation d'un jeton de renouvellement
+    FORBIDDEN:
+      status: 403
+      title: Accès refusé
+      when: Rôle ou permission insuffisants, ou ressource d'un autre utilisateur
+    NOT_FOUND:
+      status: 404
+      title: Ressource introuvable
+      when: Inexistante ou non visible
+    INVALID_TRANSITION:
+      status: 409
+      title: Transition impossible
+      when: L'état actuel ne permet pas l'action (matrice)
+    VERSION_CONFLICT:
+      status: 412
+      title: Version périmée
+      when: If-Match différent de la version courante
+    IDEMPOTENCY_KEY_REUSED:
+      status: 422
+      title: Clé d'idempotence réutilisée
+      when: Même clé, corps différent
+    RATE_LIMITED:
+      status: 429
+      title: Trop de requêtes
+      when: Limite atteinte ; voir Retry-After
+    INVALID_CREDENTIALS:
+      status: 401
+      title: Identifiants incorrects
+      when: Connexion
+    ACCOUNT_SUSPENDED:
+      status: 423
+      title: Compte suspendu
+      when: Décision administrateur
+    PHONE_ALREADY_USED:
+      status: 409
+      title: Numéro déjà utilisé
+      when: Inscription
+    CODE_INVALID:
+      status: 422
+      title: Code incorrect
+      when: Code SMS ou de réinitialisation
+    CODE_EXPIRED:
+      status: 422
+      title: Code expiré
+      when: Code SMS ou de réinitialisation
+    PROVIDER_ALREADY_ACTIVE:
+      status: 409
+      title: Capacité déjà active
+      when: Activation prestataire
+    DOMAIN_LIMIT_EXCEEDED:
+      status: 422
+      title: Trop de domaines
+      when: Plus de 5 domaines ou aucun
+    PROFILE_NOT_ACTIVE:
+      status: 403
+      title: Profil prestataire inactif
+      when: Publication d'offre ou réponse à une demande
+    VERIFICATION_LEVEL_TOO_LOW:
+      status: 403
+      title: Niveau de vérification insuffisant
+      when: Minimum de la catégorie non atteint
+    OFFER_NOT_AVAILABLE:
+      status: 409
+      title: Offre non disponible
+      when: Offre non valable au moment de la commande
+    SLOT_TAKEN:
+      status: 409
+      title: Créneau déjà réservé
+      when: Commande ou planification
+    SLOT_OVERLAP:
+      status: 409
+      title: Créneaux qui se chevauchent
+      when: Ajout de créneau
+    ITEM_UNAVAILABLE:
+      status: 409
+      title: Article indisponible
+      when: Commande
+    TOO_MANY_PENDING_ORDERS:
+      status: 429
+      title: Trop de commandes en attente
+      when: Limite anti-abus
+    TOO_MANY_OPEN_REQUESTS:
+      status: 429
+      title: Trop de demandes ouvertes
+      when: Limite anti-abus
+    PROPOSAL_CAP_REACHED:
+      status: 409
+      title: Plafond de propositions atteint
+      when: Dix propositions actives par défaut
+    ALREADY_PROPOSED:
+      status: 409
+      title: Proposition déjà envoyée
+      when: Une par prestataire et par demande
+    NOT_ELIGIBLE:
+      status: 403
+      title: Prestataire non éligible
+      when: Domaine, couverture ou niveau de vérification
+    FUNDS_NOT_RESERVED:
+      status: 409
+      title: Fonds non réservés
+      when: Planification, démarrage ou préparation de livraison
+    PAYMENT_NOT_ALLOWED_STATE:
+      status: 409
+      title: Paiement impossible dans cet état
+      when: Transaction non acceptée
+    OPERATOR_UNAVAILABLE:
+      status: 503
+      title: Opérateur de paiement indisponible
+      when: Réessayer plus tard
+    SIGNATURE_INVALID:
+      status: 401
+      title: Signature de rappel invalide
+      when: Webhook
+    DISPUTE_WINDOW_CLOSED:
+      status: 409
+      title: Fenêtre de contestation close
+      when: Plus de 72 h après « Terminée »
+    DISPUTE_ALREADY_OPEN:
+      status: 409
+      title: Litige déjà ouvert
+      when: Un litige par transaction
+    TRANSACTION_NOT_CONFIRMED:
+      status: 409
+      title: Transaction non confirmée
+      when: Évaluation prématurée
+    REVIEW_ALREADY_SUBMITTED:
+      status: 409
+      title: Évaluation déjà déposée
+      when: Une par auteur
+    REFUND_EXCEEDS_PAID:
+      status: 422
+      title: Remboursement supérieur au montant payé
+      when: Décision de litige
+    INVALID_CODE:
+      status: 422
+      title: Code de remise incorrect
+      when: Réponse avec essais restants
+    CODE_LOCKED:
+      status: 423
+      title: Code de remise verrouillé
+      when: Trop d'essais
+    ALREADY_CLAIMED:
+      status: 409
+      title: Livraison déjà prise
+      when: Un autre livreur a accepté
+    DELIVERY_EXPIRED:
+      status: 410
+      title: Demande de livraison expirée
+      when: Aucun preneur dans le délai
+    CONVERSATION_READ_ONLY:
+      status: 409
+      title: Conversation en lecture seule
+      when: Litige ouvert ou transaction clôturée
+    FILE_TOO_LARGE:
+      status: 413
+      title: Fichier trop volumineux
+      when: Téléversement
+    FILE_TYPE_NOT_ALLOWED:
+      status: 415
+      title: Type de fichier refusé
+      when: Téléversement
+    ACTIVE_LOCATION_EMPTY:
+      status: 422
+      title: Localisation active vide
+      when: La localisation active pointe une adresse non renseignée
+    ADDRESS_REQUIRED:
+      status: 422
+      title: Adresse requise
+      when: Commande à domicile ou travaux sans adresse d'intervention
+    AMOUNT_MISMATCH:
+      status: 422
+      title: Montant incorrect
+      when: Le montant du paiement ne correspond pas au total de la transaction
+    ATTRIBUTE_REQUIRED:
+      status: 422
+      title: Caractéristique obligatoire manquante
+      when: Une caractéristique obligatoire de la catégorie n'est pas renseignée
+    CANCEL_NOT_ALLOWED_IN_PROGRESS:
+      status: 409
+      title: Annulation impossible en cours de prestation
+      when: 'Annulation par le client d''une transaction déjà en cours : passer par l''administrateur (D25)'
+    CANNOT_SUSPEND_SELF:
+      status: 403
+      title: Auto-suspension interdite
+      when: Un administrateur suspend son propre compte
+    CATEGORY_INACTIVE:
+      status: 422
+      title: Catégorie désactivée
+      when: Domaine ou catégorie inactive
+    CATEGORY_IN_USE:
+      status: 409
+      title: Catégorie utilisée
+      when: Désactivation d'une catégorie qui porte des offres, des demandes ou des profils
+    CATEGORY_NOT_LEAF:
+      status: 422
+      title: Catégorie non terminale
+      when: Une offre ou une demande doit viser une catégorie sans sous-catégorie
+    DISPUTE_ALREADY_TAKEN:
+      status: 409
+      title: Litige déjà pris
+      when: Un autre administrateur instruit déjà le litige
+    DISPUTE_CLOSED:
+      status: 409
+      title: Litige clos
+      when: Ajout d'une preuve à un litige décidé
+    DISPUTE_NOT_IN_PROGRESS:
+      status: 409
+      title: Litige non en instruction
+      when: Décision sur un litige qui n'est pas en instruction
+    DUPLICATE_LOCATION:
+      status: 409
+      title: Localité en double
+      when: Le triplet (pays, ville, quartier) existe déjà
+    DUPLICATE_NAME:
+      status: 409
+      title: Nom déjà utilisé
+      when: Nom de catégorie ou de caractéristique déjà présent sous le même parent ou dans la même catégorie
+    EMAIL_ALREADY_USED:
+      status: 409
+      title: E-mail déjà utilisé
+      when: Adresse e-mail rattachée à un autre compte
+    EVIDENCE_REQUIRED:
+      status: 422
+      title: Justificatif requis
+      when: Déclaration de fin de prestation sans justificatif
+    FILE_NOT_OWNED:
+      status: 403
+      title: Fichier d'un autre utilisateur
+      when: Le fichier cité n'appartient pas à l'appelant
+    HANDOVER_IS_PICKUP:
+      status: 422
+      title: Mode retrait
+      when: Livraison déclarée prête alors que le mode de remise est le retrait
+    HANDOVER_LOCKED:
+      status: 409
+      title: Mode de remise verrouillé
+      when: Changement de mode après la prise en charge de la livraison
+    INTERNATIONAL_NOT_VALIDATED:
+      status: 409
+      title: Ouverture internationale non validée
+      when: Publication d'une offre internationale sans validation administrateur
+    LOCATION_REQUIRED:
+      status: 422
+      title: Localisation requise
+      when: Lieu de travail manquant pour activer le profil
+    NOT_A_DELIVERY:
+      status: 404
+      title: Pas une livraison
+      when: La transaction n'est pas de type Livraison
+    NOT_A_SALE:
+      status: 422
+      title: Pas une vente
+      when: L'action ne s'applique qu'à une vente
+    OFFER_INCOMPLETE:
+      status: 422
+      title: Offre incomplète
+      when: Publication d'une offre à laquelle il manque des éléments (prix, articles…)
+    OFFER_LOCKED:
+      status: 409
+      title: Offre verrouillée
+      when: Modification d'un champ figé par une transaction en cours
+    OFFER_NOT_A_GOOD:
+      status: 422
+      title: Offre sans articles
+      when: Ajout d'un article à une offre qui n'est pas un bien
+    OWN_OFFER:
+      status: 403
+      title: Offre personnelle
+      when: Commande de sa propre offre
+    OWN_REQUEST:
+      status: 403
+      title: Demande personnelle
+      when: Proposition sur sa propre demande
+    PAYMENT_ALREADY_RESERVED:
+      status: 409
+      title: Fonds déjà réservés
+      when: Nouvelle tentative de paiement alors que les fonds sont déjà réservés
+    PAYOUT_NOT_RETRYABLE:
+      status: 409
+      title: Reversement non relançable
+      when: Relance d'un reversement qui n'est pas en échec
+    PHONE_NOT_VERIFIED:
+      status: 403
+      title: Téléphone non vérifié
+      when: Connexion avant la confirmation du numéro
+    PROFILE_NOT_FOUND:
+      status: 404
+      title: Profil introuvable
+      when: Aucun profil prestataire pour ce compte
+    PROPOSAL_NOT_ACTIVE:
+      status: 409
+      title: Proposition inactive
+      when: Modification d'une proposition qui n'est plus Active
+    RADIUS_REQUIRED:
+      status: 422
+      title: Rayon requis
+      when: Mode de couverture Rayon sans rayon
+    REQUEST_NOT_OPEN:
+      status: 409
+      title: Demande non ouverte
+      when: Action sur une demande qui n'est plus Ouverte
+    RESPONSE_WINDOW_EXPIRED:
+      status: 409
+      title: Délai de réponse dépassé
+      when: Acceptation après le délai de réponse du prestataire
+    SLOT_RESERVED:
+      status: 409
+      title: Créneau réservé
+      when: Suppression d'un créneau déjà réservé
+    UNKNOWN_PERMISSION:
+      status: 422
+      title: Permission inconnue
+      when: Code de permission absent de la liste
+    VERIFICATION_NOT_PENDING:
+      status: 409
+      title: Vérification non en attente
+      when: Décision sur une vérification déjà traitée
+    VERIFICATION_PENDING:
+      status: 409
+      title: Vérification déjà en attente
+      when: Nouvelle demande du même type avant la décision
