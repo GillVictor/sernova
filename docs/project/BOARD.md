@@ -30,7 +30,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 ## Fronts (à détailler après PM-02)
 | ID | Tâche | Dépend de | Statut | Propriétaire | Branche |
 |---|---|---|---|---|---|
-| FR-01 | Squelette de l'application Flutter (client et prestataire) : navigation, thème, authentification | S1-T3 | À faire | | |
+| FR-01 | Mobile : authentification. Tranche 1 : connexion (EP-004), renouvellement avec rotation (EP-005), déconnexion (EP-006), session, jeton derrière une interface de stockage. Tranche 2 (À faire) : inscription et vérification du téléphone (EP-001 à EP-003), stockage sécurisé (D31, paquet à valider) | S1-T3 | En cours | Claude (développeur mobile) | feat/fr01-mobile-auth (tranche 1 faite : flutter test 172 réussis le 2026-11-24, poste de Gilles ; D31 validée : stockage sécurisé du jeton écrit le 2026-11-25, pas encore exécuté) |
 | FR-02 | Squelette de l'administration Next.js : connexion, gestion des catégories (écrans sur serveur factice ; branchement au vrai backend après S1-T6) | S1-T6, P-05 | En revue | Claude (développeur administration) | feat/fr02-admin-categories |
 | FR-08 | Administration web alignée sur D33 à D35 : permissions[] (EP-009), catégories désactivées (EP-115), formulaires catégories (D34) | FR-02, PM-06 | En revue | Claude (développeur administration) | feat/fr08-admin-web-d33-d35 |
 | FR-09 | Brancher l'administration web au vrai backend (API réelle à la place du serveur factice, contrat revérifié, jeton selon D32 / OP-30) | S1-T6, FR-08 | À faire | | |

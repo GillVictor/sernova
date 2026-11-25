@@ -22,8 +22,9 @@ Pour ajouter une page à un menu : voir `lib/shell/destinations.dart`.
 
 Connexion (FR-01, tranche 1) : avec l'API (`API_BASE_URL`), l'application affiche l'écran de connexion
 (EP-004) ; le jeton d'accès est renouvelé automatiquement (EP-005) et le bouton de déconnexion est en bas
-du menu (EP-006). Le jeton de rafraîchissement n'est conservé qu'en mémoire tant que D31 n'est pas validée :
-il faut se reconnecter après chaque lancement.
+du menu (EP-006). Le jeton de rafraîchissement est conservé dans le stockage sécurisé de l'appareil
+(Keychain / Keystore, D31) : la session survit à un redémarrage. Android : `minSdk` 24 et sauvegarde
+automatique désactivée (`allowBackup=false`).
 
 Espace prestataire (développement) :
 ```

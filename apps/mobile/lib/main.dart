@@ -9,7 +9,7 @@ import 'core/api/api_exception.dart';
 import 'core/l10n/strings.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/data/auth_repository.dart';
-import 'features/auth/data/token_store.dart';
+import 'features/auth/data/secure_token_store.dart';
 import 'features/auth/presentation/auth_gate.dart';
 import 'features/auth/presentation/session_controller.dart';
 import 'shell/app_role.dart';
@@ -80,9 +80,9 @@ Future<void> main() async {
     accessToken: () => session.accessToken,
     onUnauthorized: () => session.refresh(),
   );
-  // In-memory until the secure storage package (D31) is validated: the user
-  // signs in again after each launch.
-  session = SessionController(auth: HttpAuthRepository(api), store: InMemoryTokenStore());
+  // The refresh token lives in the platform's secure storage (D31), so the
+  // session survives a restart.
+  session = SessionController(auth: HttpAuthRepository(api), store: SecureTokenStore());
   return (deps: AppDependencies.http(api), session: session);
 }
 
