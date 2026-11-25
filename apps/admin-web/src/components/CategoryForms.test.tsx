@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { AddAttributeForm, CreateCategoryForm, EditCategoryForm } from "./CategoryForms";
@@ -103,6 +103,43 @@ describe("EditCategoryForm", () => {
   });
 });
 
+describe("EditCategoryForm: reactivation (D35)", () => {
+  const inactive: Category = { id: "plomb", name: "Plomberie", order: 1, active: false, family: "Domicile", minVerificationLevel: "N1" };
+
+  it("shows an inactive category unchecked and reactivates it by sending only active: true", async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<EditCategoryForm category={inactive} onSave={onSave} />);
+    expect(screen.getByLabelText("Catégorie active")).not.toBeChecked();
+    await user.click(screen.getByLabelText("Catégorie active"));
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith("plomb", { active: true }));
+  });
+});
+
+describe("CreateCategoryForm: parents offered (D35)", () => {
+  const mixed: Category[] = [
+    {
+      id: "dom", name: "Domicile", order: 1, active: true, family: "Domicile", minVerificationLevel: "N0",
+      children: [{ id: "plomb", name: "Plomberie", order: 1, active: false, family: "Domicile", minVerificationLevel: "N1" }],
+    },
+    {
+      id: "trav", name: "Travaux", order: 2, active: false, family: "Travaux", minVerificationLevel: "N0",
+      children: [{ id: "mac", name: "Maçonnerie", order: 1, active: true, family: "Travaux", minVerificationLevel: "N0" }],
+    },
+  ];
+
+  it("does not offer an inactive category, nor anything under it, as a parent", () => {
+    render(<CreateCategoryForm tree={mixed} onCreate={vi.fn()} />);
+    const parent = screen.getByRole("combobox", { name: messages.category.fields.parent.label });
+    const offered = within(parent).getAllByRole("option").map((o) => o.textContent ?? "");
+    expect(offered.some((l) => l.includes("Domicile"))).toBe(true);
+    for (const hidden of ["Plomberie", "Travaux", "Maçonnerie"]) {
+      expect(offered.some((l) => l.includes(hidden))).toBe(false);
+    }
+  });
+});
+
 describe("AddAttributeForm", () => {
   it("asks for options only for the List type and requires them", async () => {
     const onAdd = vi.fn().mockResolvedValue(undefined);
@@ -123,4 +160,52 @@ describe("AddAttributeForm", () => {
       expect(onAdd).toHaveBeenCalledWith({ name: "Etat", valueType: "Liste", required: true, options: "Neuf, Occasion" }),
     );
   });
+
+  async function fillList(user: ReturnType<typeof userEvent.setup>, values: string) {
+    await user.type(screen.getByLabelText("Nom"), "Etat");
+    await user.selectOptions(screen.getByLabelText("Type de valeur"), "Liste");
+    await user.type(screen.getByLabelText("Valeurs possibles"), values);
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+  }
+
+  it("cleans the spaces around each option before sending (D34)", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await fillList(user, "  Neuf ,Occasion ");
+    await waitFor(() =>
+      expect(onAdd).toHaveBeenCalledWith({ name: "Etat", valueType: "Liste", required: false, options: "Neuf, Occasion" }),
+    );
+  });
+
+  it("refuses an empty value and does not call the API", async () => {
+    const onAdd = vi.fn();
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await fillList(user, "Neuf,,Occasion");
+    expect(screen.getByText(messages.validation.optionsEmptyItem)).toBeInTheDocument();
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it("refuses a duplicate and names it", async () => {
+    const onAdd = vi.fn();
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await fillList(user, "Neuf, Occasion, neuf");
+    expect(screen.getByText("La valeur « neuf » est en double.")).toBeInTheDocument();
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it("never sends options for a type other than Liste", async () => {
+    const onAdd = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<AddAttributeForm onAdd={onAdd} />);
+    await user.type(screen.getByLabelText("Nom"), "Marque");
+    await user.selectOptions(screen.getByLabelText("Type de valeur"), "Liste");
+    await user.type(screen.getByLabelText("Valeurs possibles"), "A, B");
+    await user.selectOptions(screen.getByLabelText("Type de valeur"), "Texte");
+    await user.click(screen.getByRole("button", { name: "Ajouter" }));
+    await waitFor(() => expect(onAdd).toHaveBeenCalledWith({ name: "Marque", valueType: "Texte", required: false }));
+  });
 });
+

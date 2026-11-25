@@ -10,6 +10,8 @@ export interface CurrentUser {
   user: { displayName?: string } & Record<string, unknown>;
   capacities?: unknown;
   providerStatus?: unknown;
+  /** EP-009 (D33): codes of the caller's admin permissions; empty for a non-admin. */
+  permissions: string[];
 }
 
 /**
@@ -43,7 +45,8 @@ export interface CreateCategoryInput {
   name: string;
   order: number;
   family?: Family;
-  minVerificationLevel: VerificationLevel;
+  /** Optional since D34: the server defaults to N0. */
+  minVerificationLevel?: VerificationLevel;
 }
 
 export interface UpdateCategoryInput {
@@ -109,13 +112,21 @@ export class ApiClient {
   }
 
   // EP-009
-  me(): Promise<CurrentUser> {
-    return this.send<CurrentUser>(routes.me, { auth: true });
+  async me(): Promise<CurrentUser> {
+    const body = await this.send<Omit<CurrentUser, "permissions"> & { permissions?: unknown }>(routes.me, { auth: true });
+    // Tolerate an absent or malformed list: nothing is granted by default.
+    const permissions = Array.isArray(body.permissions) ? body.permissions.filter((p): p is string => typeof p === "string") : [];
+    return { ...body, permissions };
   }
 
   // EP-021
   listCategories(): Promise<Category[]> {
     return this.send<Category[]>(routes.categories);
+  }
+
+  // EP-115 (D35): admin tree with inactive categories; EP-021 stays public and active-only
+  listAllCategories(): Promise<Category[]> {
+    return this.send<Category[]>(routes.allCategories, { auth: true });
   }
 
   // EP-022

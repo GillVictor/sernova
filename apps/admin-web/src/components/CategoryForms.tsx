@@ -7,6 +7,7 @@ import { TextField } from "./TextField";
 import { messages, t } from "@/i18n";
 import { ApiError } from "@/lib/api/errors";
 import { errorMessage } from "@/lib/api/messages";
+import { OPTIONS_MAX_LENGTH, normalizeOptions } from "@/lib/options";
 import type {
   AddAttributeInput,
   Category,
@@ -39,6 +40,13 @@ export function flatten(tree: Category[], depth = 0): { category: Category; dept
   return tree.flatMap((c) => [{ category: c, depth }, ...flatten(c.children ?? [], depth + 1)]);
 }
 
+/** D35: EP-115 also lists inactive categories; they, and what hangs under them, are not offered as parents. */
+export function activeOnly(tree: Category[]): Category[] {
+  return tree
+    .filter((c) => c.active)
+    .map((c) => ({ ...c, children: activeOnly(c.children ?? []) }));
+}
+
 export function CreateCategoryForm({
   tree,
   onCreate,
@@ -57,7 +65,7 @@ export function CreateCategoryForm({
 
   const parents = [
     { value: "", label: t("category.rootOption") },
-    ...flatten(tree).map(({ category, depth }) => ({
+    ...flatten(activeOnly(tree)).map(({ category, depth }) => ({
       value: category.id,
       label: `${"— ".repeat(depth)}${category.name}`,
     })),
@@ -178,8 +186,15 @@ export function AddAttributeForm({ onAdd }: { onAdd: (input: AddAttributeInput) 
     const next: Errors = {};
     if (!name.trim()) next.name = t("validation.required");
     else if (name.trim().length > 60) next.name = t("validation.nameTooLong", { max: 60 });
-    if (valueType === "Liste" && !options.trim()) next.options = t("validation.optionsRequired");
-    else if (options.length > 500) next.options = t("validation.nameTooLong", { max: 500 });
+    let cleanOptions: string | undefined;
+    if (valueType === "Liste") {
+      const result = normalizeOptions(options);
+      if (result.ok) cleanOptions = result.value;
+      else if (result.error === "empty") next.options = t("validation.optionsRequired");
+      else if (result.error === "emptyItem") next.options = t("validation.optionsEmptyItem");
+      else if (result.error === "duplicate") next.options = t("validation.optionsDuplicate", { value: result.value });
+      else next.options = t("validation.nameTooLong", { max: OPTIONS_MAX_LENGTH });
+    }
     setErrors(next);
     setFormError(null);
     if (Object.keys(next).length) return;
@@ -190,7 +205,7 @@ export function AddAttributeForm({ onAdd }: { onAdd: (input: AddAttributeInput) 
         name: name.trim(),
         valueType,
         required,
-        ...(valueType === "Liste" ? { options: options.trim() } : {}),
+        ...(valueType === "Liste" && cleanOptions ? { options: cleanOptions } : {}),
       });
       setName("");
       setOptions("");

@@ -1,7 +1,7 @@
 // Mock ServNova API for local development (no dependency).
 // Implements only the contract routes used by apps/admin-web:
 // EP-004 login, EP-005 refresh, EP-006 logout, EP-009 users/me,
-// EP-021/022 categories and attributes, EP-089/090/091 admin category routes.
+// EP-021/022 categories and attributes, EP-089/090/091 and EP-115 admin category routes.
 // Set MOCK_NO_PERMISSION=1 to make the admin routes answer 403 FORBIDDEN.
 // Dev credentials are fake and local to this file.
 import { createServer } from "node:http";
@@ -28,11 +28,22 @@ const roots = Object.fromEntries(
 addCategory({ parentId: roots.Domicile.id, name: "Plomberie", order: 1 });
 addCategory({ parentId: roots.Domicile.id, name: "Ménage", order: 2 });
 addCategory({ parentId: roots.Vente.id, name: "Téléphones", order: 1 });
-function tree(parentId = null) {
+function tree(parentId = null, includeInactive = false) {
   return categories
-    .filter((c) => c.parentId === parentId && c.active)
+    .filter((c) => c.parentId === parentId && (includeInactive || c.active))
     .sort((a, b) => a.order - b.order)
-    .map(({ parentId: _p, ...c }) => ({ ...c, children: tree(c.id) }));
+    .map(({ parentId: _p, ...c }) => ({ ...c, children: tree(c.id, includeInactive) }));
+}
+// D34: options = comma-separated text (500 max), required for Liste, forbidden otherwise,
+// values trimmed, no empty value, no duplicate (case-insensitive).
+function optionsErrors(b) {
+  if (b.valueType !== "Liste") return b.options !== undefined && b.options !== null ? [["options", "INVALID"]] : [];
+  if (typeof b.options !== "string" || !b.options.trim()) return [["options", "REQUIRED"]];
+  const items = b.options.split(",").map((s) => s.trim());
+  if (b.options.length > 500 || items.some((s) => s === "")) return [["options", "INVALID"]];
+  if (new Set(items.map((s) => s.toLowerCase())).size !== items.length) return [["options", "INVALID"]];
+  b.options = items.join(", ");
+  return [];
 }
 const FAMILIES = ["Numerique", "Domicile", "Travaux", "Vente", "Livraison"];
 const LEVELS = ["N0", "N1", "N2", "N3"];
@@ -108,7 +119,7 @@ const handler = async (req, res) => {
 
   if (route === `GET ${BASE}/users/me`) {
     if (!accessTokens.has((req.headers.authorization ?? "").replace("Bearer ", ""))) return problem(res, 401, "UNAUTHENTICATED");
-    return json(res, 200, { user: { displayName: "Admin de démonstration" }, capacities: ["Client"], providerStatus: null });
+    return json(res, 200, { user: { displayName: "Admin de démonstration" }, capacities: ["Client"], providerStatus: null, permissions: process.env.MOCK_NO_PERMISSION === "1" ? [] : ["categories.manage"] });
   }
 
   // --- Categories (EP-021, EP-022: public) ---
@@ -127,18 +138,24 @@ const handler = async (req, res) => {
     const fieldErrors = (list) => list.filter(Boolean).map(([field, code]) => ({ field, code }));
     const invalid = (list) => problem(res, 422, "VALIDATION_FAILED", { errors: fieldErrors(list) });
 
+    // EP-115: whole tree, inactive categories included (D35)
+    if (route === `GET ${BASE}/admin/categories`) return json(res, 200, tree(null, true));
+
     if (route === `POST ${BASE}/admin/categories`) {
       const b = await readBody(req);
       const bad = [
         !b.name || typeof b.name !== "string" || b.name.length > 80 ? ["name", b.name ? "INVALID" : "REQUIRED"] : null,
         !Number.isInteger(b.order) ? ["order", "INVALID"] : null,
+        // D34: root = family required; with parentId = family forbidden (inherited)
         !b.parentId && !FAMILIES.includes(b.family) ? ["family", "REQUIRED"] : null,
-        !LEVELS.includes(b.minVerificationLevel) ? ["minVerificationLevel", "INVALID"] : null,
+        b.parentId && b.family !== undefined ? ["family", "INVALID"] : null,
+        // D34: minVerificationLevel is optional, N0 by default
+        b.minVerificationLevel !== undefined && !LEVELS.includes(b.minVerificationLevel) ? ["minVerificationLevel", "INVALID"] : null,
         b.parentId && !categories.some((c) => c.id === b.parentId) ? ["parentId", "INVALID"] : null,
       ].filter(Boolean);
       if (bad.length) return invalid(bad);
       if (categories.some((c) => c.parentId === (b.parentId ?? null) && c.name.toLowerCase() === b.name.toLowerCase())) return problem(res, 409, "DUPLICATE_NAME");
-      const { parentId: _p, ...created } = addCategory(b);
+      const { parentId: _p, ...created } = addCategory({ ...b, minVerificationLevel: b.minVerificationLevel ?? "N0" });
       return json(res, 201, created);
     }
 
@@ -165,7 +182,7 @@ const handler = async (req, res) => {
           !b.name || b.name.length > 60 ? ["name", b.name ? "INVALID" : "REQUIRED"] : null,
           !TYPES.includes(b.valueType) ? ["valueType", "INVALID"] : null,
           typeof b.required !== "boolean" ? ["required", "INVALID"] : null,
-          b.valueType === "Liste" && !b.options ? ["options", "REQUIRED"] : null,
+          ...optionsErrors(b),
         ].filter(Boolean);
         if (bad.length) return invalid(bad);
         const list = attributes.get(category.id) ?? [];

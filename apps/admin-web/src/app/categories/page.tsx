@@ -6,8 +6,10 @@ import { useCallback, useEffect, useState } from "react";
 import { AddAttributeForm, CreateCategoryForm, EditCategoryForm, flatten } from "@/components/CategoryForms";
 import { t } from "@/i18n";
 import type { AttributeDefinition, Category } from "@/lib/api/client";
+import { RequirePermission } from "@/components/RequirePermission";
 import { errorMessage } from "@/lib/api/messages";
-import { useSession } from "@/lib/session";
+import { CATEGORIES_MANAGE } from "@/lib/permissions";
+import { useCurrentUser, useSession } from "@/lib/session";
 
 function Tree({ nodes, selectedId, onSelect }: { nodes: Category[]; selectedId?: string; onSelect: (c: Category) => void }) {
   return (
@@ -27,9 +29,8 @@ function Tree({ nodes, selectedId, onSelect }: { nodes: Category[]; selectedId?:
   );
 }
 
-export default function CategoriesPage() {
-  const { client, authenticated } = useSession();
-  const router = useRouter();
+function CategoriesScreen() {
+  const { client } = useSession();
   const [tree, setTree] = useState<Category[] | null>(null);
   const [selectedId, setSelectedId] = useState<string>();
   const [attributes, setAttributes] = useState<AttributeDefinition[]>([]);
@@ -38,7 +39,7 @@ export default function CategoriesPage() {
 
   const reload = useCallback(async () => {
     try {
-      setTree(await client.listCategories()); // EP-021
+      setTree(await client.listAllCategories()); // EP-115 (inactive included, D35)
       setError(null);
     } catch (e) {
       setError(errorMessage(e));
@@ -46,12 +47,8 @@ export default function CategoriesPage() {
   }, [client]);
 
   useEffect(() => {
-    if (!authenticated) {
-      router.replace("/login");
-      return;
-    }
     void reload();
-  }, [authenticated, reload, router]);
+  }, [reload]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -61,14 +58,10 @@ export default function CategoriesPage() {
       .catch((e) => setError(errorMessage(e)));
   }, [client, selectedId]);
 
-  if (!authenticated) return null;
-
   const selected = tree ? flatten(tree).find((x) => x.category.id === selectedId)?.category : undefined;
 
   return (
-    <main className="page">
-      <p><Link href="/">{t("category.back")}</Link></p>
-      <h1>{t("category.title")}</h1>
+    <>
       {error && <p className="field__error" role="alert">{error}</p>}
       {notice && <p className="notice" role="status">{notice}</p>}
 
@@ -124,6 +117,31 @@ export default function CategoriesPage() {
             }}
           />
         </section>
+      )}
+    </>
+  );
+}
+
+export default function CategoriesPage() {
+  const { authenticated } = useSession();
+  const router = useRouter();
+  const { me, error } = useCurrentUser();
+
+  useEffect(() => {
+    if (!authenticated) router.replace("/login");
+  }, [authenticated, router]);
+
+  if (!authenticated) return null;
+
+  return (
+    <main className="page">
+      <p><Link href="/">{t("category.back")}</Link></p>
+      <h1>{t("category.title")}</h1>
+      {error && <p className="field__error" role="alert">{error}</p>}
+      {!error && (
+        <RequirePermission permissions={me ? me.permissions : null} code={CATEGORIES_MANAGE}>
+          <CategoriesScreen />
+        </RequirePermission>
       )}
     </main>
   );
