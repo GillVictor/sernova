@@ -47,3 +47,13 @@ Test qui compare les routes exposées au contrat (EP de S1 tous présents, chemi
 
 ## Scénarios de recette S1
 S1-01 inscription, code, connexion. S1-02 réutilisation d'un jeton refusée. S1-03 compte suspendu refusé. S1-04 activation prestataire avec 1 à 5 domaines. S1-05 localisation active vide refusée. S1-06 profil public sans domicile précis. S1-07 catégories en arbre. S1-08 route admin sans permission refusée. S1-09 téléversement refusé (type, taille). S1-10 modification d'un paramètre journalisée.
+
+## Ajustements du 2026-11-24 (architecte)
+Issus du contrat v0.2 (feuille Schémas) et de la revue des fronts. Aucune route ajoutée.
+- **T0** : épingler les actions GitHub par empreinte (OP-18) ; ajouter un test qui vérifie que tout code d'erreur renvoyé figure dans la feuille Erreurs (84 codes depuis la v0.2).
+- **T2** : le jeu de départ dépend d'OP-32 (pays de lancement) ; ne pas charger les villes avant sa réponse.
+- **T3** : les réponses d'EP-002, EP-004 et EP-005 suivent `tokenPair` (avec `expiresIn`).
+- **T4** : EP-009 renvoie `{user, capacities, providerStatus, permissions[]}` (`permissions` vide jusqu'à T5, `providerStatus` null jusqu'à T8).
+- **T6** : EP-021 accepte `includeInactive` pour les titulaires de `categories.manage` ; `options` d'une caractéristique est un tableau de textes ; données de départ : attribut « Délai » sur les catégories de services (OP-23) ; catégories de départ alignées sur les maquettes (Informatique, Design, Bricolage, Transport, après décision d'OP-32).
+- **T8** : `completionRate` (prestations achevées) et `profileCompleteness` (complétude) sont deux valeurs dérivées distinctes (OP-24) ; photo de profil selon OP-30.
+- **T10** : ajouter un test de routage des routes littérales avant les routes à paramètre (Conventions).

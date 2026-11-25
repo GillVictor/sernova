@@ -11,7 +11,7 @@ Principe : plusieurs instances travaillent en même temps sans se marcher dessus
 | E Application mobile | Squelette Flutter, thème, i18n, infobulles d'aide, client d'API, écrans d'authentification sur un serveur factice | `apps/mobile` | Tout de suite (écrans réels après S1-T3) | contrat |
 | F Administration | Squelette Next.js, client d'API, écrans de catégories sur un serveur factice | `apps/admin-web` | Tout de suite | contrat |
 | G Qualité | Collection de requêtes, liste de contrôle de sécurité, tests d'API de bout en bout | `backend/tests/Api`, `docs/` | Dès S1-T3 | voie A |
-| H Architecte | Plans S2 à S6, génération du schéma OpenAPI à partir du contrat, suivi du mémoire | `docs/` | Tout de suite | |
+| H Architecte | Plans S2 à S6, contrat et dictionnaire (feuille Schémas), génération du schéma OpenAPI et du serveur factice commun, suivi du mémoire | `docs/` | Tout de suite | |
 
 ## Règles d'intégration
 1. Les voies B, C, D n'écrivent que de la logique pure (sans base de données, sans HTTP) tant que S1 n'est pas fusionnée ; le branchement à la persistance et aux routes se fait dans la tranche concernée (S2, S3, S4).
@@ -19,3 +19,6 @@ Principe : plusieurs instances travaillent en même temps sans se marcher dessus
 3. Fusion vers `main` : petites PR, une tâche chacune, revue par une autre instance ; rebaser sur `main` au début de chaque session.
 4. Les voies E et F n'appellent que les routes du contrat ; avant que le backend soit prêt, elles utilisent un serveur factice généré à partir du contrat.
 5. Les conflits sur `BOARD.md` se résolvent en faveur de la première instance qui a poussé.
+6. Numéros de décisions (D) et de points ouverts (OP) : lire `origin/main` avant d'en ajouter ; en cas de collision entre branches, l'architecte renumérote le plus récent.
+7. Une tâche n'est « En cours » ou « En revue » que si sa branche existe sur `origin` ; sinon elle repasse à « À faire » ou la branche est poussée. Le travail ne reste jamais seulement sur une machine.
+8. Un front ne devine pas un schéma : il lit la feuille Schémas du contrat ; pour un objet qui n'y figure pas, il ouvre un point ouvert avant de coder une hypothèse (D33).

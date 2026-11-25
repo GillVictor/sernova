@@ -22,3 +22,8 @@ Le mémoire n'est pas modifié avant le dépôt final ; ce registre liste tout c
 | M16 | Bibliographie | Ajouter des références académiques sur les plateformes et le cadre réglementaire | | À faire |
 | M17 | Ch. 4 et 5 | À rédiger après la réalisation : architecture, choix de la pile, copies d'écran, mesures, conclusion et perspectives (acompte, jalons, réservation différée) | | À faire |
 | M18 | Ch. 3, outils utilisés | Aligner la liste (Figma, Lucidchart, Mermaid, outils de la pile) | | À faire |
+| M19 | Ch. 3, diagrammes de classes (fig. 26) et dictionnaire | ProfilPrestataire : `tauxAchevement` redéfini (prestations achevées) et ajout de `completudeProfil` ; photo de profil ; relation OffrePhoto si OP-30 est accepté | OP-24, OP-30 | À faire |
+| M20 | Ch. 3, conception de l'API | Le contrat devient la source des schémas (feuille Schémas, 22 objets) ; 84 codes d'erreur stables ; principe « un front ne devine pas un schéma » (D33) | Contrat v0.2 | À faire |
+| M21 | Ch. 4, méthode de réalisation | Fronts développés avant le backend, sur serveur factice ; leçons : écarts maquettes et contrat (OP-31), collisions de numéros de décisions, branches annoncées mais non poussées | État des lieux du 2026-11-24 | À faire |
+| M22 | Ch. 1 et 2, périmètre géographique | Selon OP-32 : Congo (adapter les maquettes, Dakar devient Brazzaville) ou Sénégal (jeu de départ, enquête, devise XOF) | OP-32 | À faire |
+| M23 | Ch. 4, recherche et carte | Choix sans PostGIS en V1 (Haversine, pg_trgm), cible de performance et mesure | D34, plan S2 | À faire |
