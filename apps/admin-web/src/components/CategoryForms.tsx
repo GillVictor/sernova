@@ -39,6 +39,13 @@ export function flatten(tree: Category[], depth = 0): { category: Category; dept
   return tree.flatMap((c) => [{ category: c, depth }, ...flatten(c.children ?? [], depth + 1)]);
 }
 
+/** D35: EP-115 also lists inactive categories; they, and what hangs under them, are not offered as parents. */
+export function activeOnly(tree: Category[]): Category[] {
+  return tree
+    .filter((c) => c.active)
+    .map((c) => ({ ...c, children: activeOnly(c.children ?? []) }));
+}
+
 export function CreateCategoryForm({
   tree,
   onCreate,
@@ -57,7 +64,7 @@ export function CreateCategoryForm({
 
   const parents = [
     { value: "", label: t("category.rootOption") },
-    ...flatten(tree).map(({ category, depth }) => ({
+    ...flatten(activeOnly(tree)).map(({ category, depth }) => ({
       value: category.id,
       label: `${"— ".repeat(depth)}${category.name}`,
     })),
