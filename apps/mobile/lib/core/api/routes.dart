@@ -2,6 +2,9 @@
 /// Never add a path that is not in the contract (see AGENTS.md).
 class ApiRoutes {
   ApiRoutes._();
+  static const register = '/auth/register'; // EP-001
+  static const verifyPhone = '/auth/verify-phone'; // EP-002
+  static const resendCode = '/auth/resend-code'; // EP-003
   static const login = '/auth/login'; // EP-004
   static const refresh = '/auth/refresh'; // EP-005
   static const logout = '/auth/logout'; // EP-006

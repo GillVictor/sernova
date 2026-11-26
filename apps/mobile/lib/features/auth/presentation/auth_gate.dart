@@ -3,14 +3,18 @@ import 'package:flutter/material.dart';
 import '../../../core/l10n/strings.dart';
 import 'login_page.dart';
 import 'session_controller.dart';
+import 'signup_controller.dart';
 
 /// Shows the login page until there is a session, then [signedInBuilder].
 /// Signing out drops the signed-in area completely, so the next account never
 /// sees the previous one's screens or data.
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key, required this.session, required this.signedInBuilder});
+  const AuthGate({super.key, required this.session, required this.signedInBuilder, this.signup});
 
   final SessionController session;
+
+  /// Enables account creation from the login page when given.
+  final SignupController? signup;
   final WidgetBuilder signedInBuilder;
 
   @override
@@ -28,7 +32,7 @@ class AuthGate extends StatelessWidget {
                 ),
               );
             case SessionStatus.signedOut:
-              return LoginPage(session: session);
+              return LoginPage(session: session, signup: signup);
             case SessionStatus.signedIn:
               return signedInBuilder(context);
           }

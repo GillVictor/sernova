@@ -4,14 +4,21 @@ import '../../../core/l10n/strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/brand_logo.dart';
 import '../../../shared/widgets/field_label.dart';
+import '../domain/phone_number.dart';
 import 'session_controller.dart';
+import 'signup_controller.dart';
+import 'signup_page.dart';
+import 'verify_phone_page.dart';
 
 /// "Connexion" (UC01, EP-004). The tokens never reach this widget: it only
 /// hands the phone and password to the [SessionController].
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key, required this.session});
+  const LoginPage({super.key, required this.session, this.signup});
 
   final SessionController session;
+
+  /// When given, the page offers account creation and phone verification.
+  final SignupController? signup;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -44,6 +51,19 @@ class _LoginPageState extends State<LoginPage> {
     // On success the gate replaces this page, which drops the typed password.
     await widget.session.login(phone: _phone.text, password: _password.text);
   }
+
+  void _openSignup() => Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => SignupPage(controller: widget.signup!),
+      ));
+
+  // Login refused with PHONE_NOT_VERIFIED: enter the code already sent (no
+  // automatic resend; the page has a "Renvoyer le code" button).
+  void _openVerify() => Navigator.of(context).push(MaterialPageRoute<void>(
+        builder: (_) => VerifyPhonePage(
+          controller: widget.signup!,
+          phone: PhoneNumber.normalize(_phone.text),
+        ),
+      ));
 
   @override
   Widget build(BuildContext context) {
@@ -145,6 +165,19 @@ class _LoginPageState extends State<LoginPage> {
                                 )
                               : Text(Strings.t('auth.login.submit')),
                         ),
+                        if (widget.signup != null) ...[
+                          TextButton(
+                            key: const Key('login-create-account'),
+                            onPressed: s.busy ? null : _openSignup,
+                            child: Text(Strings.t('auth.login.createAccount')),
+                          ),
+                          if (failure?.code == 'PHONE_NOT_VERIFIED')
+                            TextButton(
+                              key: const Key('login-verify-phone'),
+                              onPressed: s.busy ? null : _openVerify,
+                              child: Text(Strings.t('auth.login.verifyPhone')),
+                            ),
+                        ],
                       ],
                     ),
                   );

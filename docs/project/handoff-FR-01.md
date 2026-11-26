@@ -10,3 +10,8 @@
   5. Bouton de déconnexion pour la disposition `NavPlacement.bottomBar` (absente pour l'instant).
 - Pièges rencontrés : le jeton de rafraîchissement ne doit jamais être utilisé deux fois (rotation, révocation de la famille) : le renouvellement est à appel unique partagé (`SessionController.refresh`). Le bouton de déconnexion est placé dans `NavigationRail.trailing` à l'intérieur d'un `IntrinsicHeight` : disposition non vérifiée à l'écran. `test/widget_test.dart` était un test par défaut cassé (corrigé).
 - Décisions prises ou questions pour l'humain : D31 à valider (paquet de stockage sécurisé). OP-32 (PHONE_NOT_VERIFIED absent de la feuille Erreurs) et OP-33 (déconnexion avec jeton d'accès expiré, sens de TOKEN_EXPIRED, format du téléphone). Brancher le dépôt GitHub à la session pour pouvoir pousser.
+
+## Mise à jour 2026-11-25 : tranche 2 (inscription et vérification du téléphone)
+- État : écrite sur feat/fr01-signup (issue de main 953f4e6), **jamais compilée ni exécutée**. Premier geste : `flutter pub get`, `flutter analyze`, `flutter test`, et corriger ou me transmettre les erreurs (des fautes de compilation sont possibles, surtout dans les 3 nouvelles pages et les tests de page).
+- Essai à l'écran : créer un compte (E.164, ex. +242…), recevoir le code, le saisir (la session s'ouvre et les pages d'inscription disparaissent), tester « Renvoyer le code », puis une connexion refusée avec PHONE_NOT_VERIFIED (le lien « Vérifier mon numéro » apparaît).
+- Restent : EP-011 (devenir prestataire), bouton de déconnexion de la barre du bas, essai contre le vrai backend, sélecteur d'indicatif (OP-40). Questions : OP-37 à OP-40.
