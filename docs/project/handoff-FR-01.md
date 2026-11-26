@@ -15,3 +15,8 @@
 - État : écrite sur feat/fr01-signup (issue de main 953f4e6). `flutter test` : 247 tests réussis sur le poste de Gilles (2026-11-26). `flutter analyze` : à confirmer. Jamais essayée à l'écran ni contre un backend.
 - Essai à l'écran : créer un compte (E.164, ex. +242…), recevoir le code, le saisir (la session s'ouvre et les pages d'inscription disparaissent), tester « Renvoyer le code », puis une connexion refusée avec PHONE_NOT_VERIFIED (le lien « Vérifier mon numéro » apparaît).
 - Restent : EP-011 (devenir prestataire), bouton de déconnexion de la barre du bas, essai contre le vrai backend, sélecteur d'indicatif (OP-40). Questions : OP-37 à OP-40.
+
+## Mise à jour 2026-11-26 : EP-011 (branche feat/fr09-become-provider)
+- État : écrite, jamais compilée ni exécutée, empilée sur feat/fr01-signup (appliquer d'abord fr01-signup.mbox et fr01-signup-docs.mbox, ou fusionner la PR FR-01). Lancer `flutter pub get`, `flutter analyze`, `flutter test`.
+- Essai à l'écran : client simple, onglet Compte, « Créer mon profil prestataire », remplir, valider : le bouton Prestataire doit apparaître dans le menu. En mode factice (`USE_FAKE_API=true FAKE_PROVIDER_ACTIVE=false`) le compte passe en Actif après l'envoi.
+- Questions : OP-41 à OP-43.

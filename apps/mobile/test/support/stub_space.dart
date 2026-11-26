@@ -8,6 +8,7 @@ import 'package:servnova_mobile/features/notifications/domain/notification_model
 import 'package:servnova_mobile/features/orders/data/order_repository.dart';
 import 'package:servnova_mobile/features/orders/domain/order_models.dart';
 import 'package:servnova_mobile/features/provider/data/provider_repository.dart';
+import 'package:servnova_mobile/features/provider/domain/provider_activation.dart';
 import 'package:servnova_mobile/features/provider/domain/provider_models.dart';
 import 'package:servnova_mobile/features/requests/data/request_feed_repository.dart';
 
@@ -63,6 +64,7 @@ class StubSpace
   Object? accountError;
   Object? profileError;
   Object? updateError;
+  Object? activateError;
   Object? verificationsError;
   Object? ordersError;
   Object? requestsError;
@@ -70,11 +72,18 @@ class StubSpace
   Object? markError;
 
   final List<ProfileChanges> updates = [];
+  final List<ProviderActivation> activations = [];
   final List<({String role, TransactionStatus? status, int limit})> orderCalls = [];
   int markAllReadCalls = 0;
   final List<String> markedRead = [];
 
   // ProviderRepository
+  @override
+  Future<void> activate(ProviderActivation activation) async {
+    activations.add(activation);
+    if (activateError != null) throw activateError!;
+  }
+
   @override
   Future<ProviderProfile> fetchProfile() async {
     if (profileError != null) throw profileError!;

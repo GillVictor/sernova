@@ -5,6 +5,7 @@ import 'package:servnova_mobile/core/api/api_exception.dart';
 import 'package:servnova_mobile/core/l10n/strings.dart';
 import 'package:servnova_mobile/core/theme/app_theme.dart';
 import 'package:servnova_mobile/features/account/domain/account_summary.dart';
+import 'package:servnova_mobile/features/catalog/domain/offer_models.dart';
 import 'package:servnova_mobile/features/catalog/presentation/search_results_page.dart';
 import 'package:servnova_mobile/features/provider/domain/provider_models.dart';
 import 'package:servnova_mobile/shell/app_role.dart';
@@ -18,6 +19,7 @@ Future<void> pumpShell(
   StubSpace s, {
   AppRole preferredRole = AppRole.client,
   NavPlacement placement = NavPlacement.rightRail,
+  StubCatalogRepository? catalog,
 }) async {
   tester.view.physicalSize = const Size(800, 1500);
   tester.view.devicePixelRatio = 1;
@@ -26,7 +28,7 @@ Future<void> pumpShell(
     theme: AppTheme.light(),
     home: AppShell(
       deps: AppDependencies(
-        catalog: StubCatalogRepository(),
+        catalog: catalog ?? StubCatalogRepository(),
         provider: s,
         account: s,
         orders: s,
@@ -143,5 +145,42 @@ void main() {
     await tester.tap(find.byTooltip(switchTip('Prestataire')));
     await tester.pumpAndSettle();
     expect(find.text('Mes offres'), findsOneWidget);
+  });
+
+  testWidgets('becoming a provider from the Compte tab reloads the account: the role switch appears',
+      (tester) async {
+    final s = simpleClient();
+    final catalog = StubCatalogRepository(
+      categories: const [CategoryNode(id: 'c1', name: 'Plomberie')],
+      locations: const [LocationSuggestion(id: 'l1', city: 'Brazzaville')],
+    );
+    await pumpShell(tester, s, catalog: catalog);
+    expect(find.byTooltip(switchTip('Prestataire')), findsNothing);
+
+    await tester.tap(find.text('Compte'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('account-become-provider')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byKey(const Key('become-name')), 'Awa Services');
+    await tester.tap(find.byKey(const Key('become-location')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Brazzaville'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('become-categories')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('category-c1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('categories-done')));
+    await tester.pumpAndSettle();
+
+    // The stub does not change the account by itself: do what the server does.
+    s.account = const AccountSummary(displayName: 'Awa N.', providerStatus: ProviderStatus.active);
+    await tester.tap(find.byKey(const Key('become-submit')));
+    await tester.pumpAndSettle();
+
+    expect(s.activations, hasLength(1));
+    expect(find.byTooltip(switchTip('Prestataire')), findsOneWidget);
+    expect(find.byKey(const Key('account-provider-active')), findsOneWidget);
   });
 }

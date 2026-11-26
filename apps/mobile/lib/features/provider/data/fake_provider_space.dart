@@ -8,6 +8,7 @@ import '../../notifications/domain/notification_models.dart';
 import '../../orders/data/order_repository.dart';
 import '../../orders/domain/order_models.dart';
 import '../../requests/data/request_feed_repository.dart';
+import '../domain/provider_activation.dart';
 import '../domain/provider_models.dart';
 import 'provider_repository.dart';
 
@@ -51,9 +52,17 @@ class FakeProviderSpace
     ),
   ];
 
+  bool _activated = false;
+
   Future<void> _latency() => Future<void>.delayed(const Duration(milliseconds: 250));
 
   // ProviderRepository
+  @override
+  Future<void> activate(ProviderActivation activation) async {
+    await _latency();
+    _activated = true;
+  }
+
   @override
   Future<ProviderProfile> fetchProfile() async {
     await _latency();
@@ -96,7 +105,7 @@ class FakeProviderSpace
     await _latency();
     return AccountSummary(
       displayName: 'Jean M.',
-      providerStatus: providerActive ? ProviderStatus.active : ProviderStatus.unknown,
+      providerStatus: (providerActive || _activated) ? ProviderStatus.active : ProviderStatus.unknown,
     );
   }
 

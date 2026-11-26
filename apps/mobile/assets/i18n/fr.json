@@ -36,7 +36,19 @@
     "PHONE_NOT_VERIFIED": "Votre numéro de téléphone n'est pas encore vérifié.",
     "PHONE_ALREADY_USED": "Ce numéro de téléphone est déjà utilisé. Connectez-vous ou utilisez un autre numéro.",
     "CODE_INVALID": "Code incorrect. Vérifiez le code reçu par SMS.",
-    "CODE_EXPIRED": "Ce code a expiré. Demandez un nouveau code."
+    "CODE_EXPIRED": "Ce code a expiré. Demandez un nouveau code.",
+    "PROVIDER_ALREADY_ACTIVE": "Votre profil prestataire est déjà actif.",
+    "DOMAIN_LIMIT_EXCEEDED": "Choisissez entre 1 et 5 domaines d'activité.",
+    "LOCATION_REQUIRED": "Choisissez la localité principale de votre activité."
+  },
+  "account": {
+    "title": "Mon compte",
+    "provider": {
+      "title": "Devenir prestataire",
+      "intro": "Proposez vos services aux clients : créez votre profil professionnel en quelques informations.",
+      "cta": "Créer mon profil prestataire",
+      "active": "Votre profil prestataire est actif. Utilisez le bouton « Prestataire » du menu pour y passer."
+    }
   },
   "search": {
     "title": "Rechercher une offre",
@@ -183,6 +195,52 @@
         "empty": "Aucune notification."
       },
       "sectionError": "Impossible de charger cette section."
+    },
+    "become": {
+      "title": "Devenir prestataire",
+      "subtitle": "Ces informations créent votre profil professionnel. Vous pourrez les modifier ensuite.",
+      "fields": {
+        "businessName": {
+          "label": "Nom commercial",
+          "placeholder": "Votre nom ou celui de votre activité",
+          "help": "Nom affiché sur vos offres et votre profil public (80 caractères maximum). Exemple : « Jean M. – Plomberie et dépannage »."
+        },
+        "location": {
+          "label": "Localité principale",
+          "placeholder": "Choisir une ville ou un quartier",
+          "help": "Ville ou quartier de votre lieu de travail. Seul le quartier est visible publiquement, jamais votre adresse précise."
+        },
+        "coverage": {
+          "label": "Zone d'intervention",
+          "help": "Jusqu'où vous acceptez de vous déplacer : votre quartier, votre ville, un rayon en kilomètres autour de votre localité, ou tout le pays.",
+          "options": {
+            "neighborhood": "Quartier",
+            "city": "Ville",
+            "radius": "Rayon",
+            "country": "Pays"
+          }
+        },
+        "radius": {
+          "label": "Rayon (km)",
+          "placeholder": "Entre 1 et 500",
+          "help": "Distance maximale, en kilomètres, autour de votre localité principale (de 1 à 500)."
+        },
+        "categories": {
+          "label": "Domaines d'activité",
+          "placeholder": "Choisir de 1 à 5 domaines",
+          "sheetTitle": "Domaines d'activité",
+          "help": "Les domaines dans lesquels vous proposez vos services. Choisissez-en de 1 à 5 : les clients vous trouveront par ces domaines.",
+          "done": "Valider"
+        }
+      },
+      "validation": {
+        "nameRequired": "Saisissez votre nom commercial.",
+        "locationRequired": "Choisissez votre localité principale.",
+        "radiusRange": "Saisissez un rayon entre 1 et 500 km.",
+        "categoriesRequired": "Choisissez au moins un domaine.",
+        "fieldRejected": "Cette valeur a été refusée. Vérifiez-la."
+      },
+      "submit": "Créer mon profil"
     },
     "profile": {
       "title": "Mon profil professionnel",

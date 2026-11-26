@@ -74,6 +74,7 @@ class _AppShellState extends State<AppShell> {
       deps: widget.deps,
       countryCode: widget.countryCode,
       goToTab: _goToTab,
+      reloadAccount: _c.load,
     );
     return IndexedStack(
       index: index,
