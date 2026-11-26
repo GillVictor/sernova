@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ServNova.Api.Observability;
 
 namespace ServNova.Api.Errors;
 
@@ -38,9 +38,6 @@ public static class ProblemDetailsSetup
             problem.Extensions["code"] = known.Code;
         }
 
-        problem.Extensions["traceId"] = TraceIdOf(context.HttpContext);
+        problem.Extensions["traceId"] = TraceIds.Of(context.HttpContext);
     }
-
-    private static string TraceIdOf(HttpContext http) =>
-        Activity.Current?.TraceId.ToString() ?? http.TraceIdentifier;
 }
