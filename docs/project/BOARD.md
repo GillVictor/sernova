@@ -15,7 +15,7 @@ Statuts : À faire, En cours, En revue, Bloqué, Terminé. Pour prendre une tâc
 ## Tranche S1 : socle (voir `docs/plan-S1.md`)
 | ID | Tâche | Dépend de | Statut | Propriétaire | Branche |
 |---|---|---|---|---|---|
-| S1-T0 | Initialisation de la solution, santé, erreurs, CI | PM-04 | En cours | Claude (développeur backend) | feat/s1-t0-backend-skeleton |
+| S1-T0 | Initialisation de la solution, santé, erreurs, CI | PM-04 | En revue | Claude (développeur backend) | feat/s1-t0-backend-skeleton |
 | S1-T1 | Noyau partagé et persistance | S1-T0 | À faire | | |
 | S1-T2 | Pays et localités | S1-T1, OP-09 | À faire | | |
 | S1-T3 | Authentification | S1-T1 | À faire | | |
