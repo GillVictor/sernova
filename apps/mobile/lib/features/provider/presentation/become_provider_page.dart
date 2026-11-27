@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/field_label.dart';
 import '../../../shared/widgets/location_picker_sheet.dart';
 import '../../../shared/widgets/sheet_frame.dart';
+import '../../../shared/widgets/sheet_result.dart';
 import '../../catalog/data/catalog_repository.dart';
 import '../../catalog/domain/offer_models.dart';
 import '../data/provider_repository.dart';
