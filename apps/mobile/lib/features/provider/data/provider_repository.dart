@@ -1,10 +1,15 @@
 import '../../../core/api/api_client.dart';
 import '../../../core/api/parse.dart';
 import '../../../core/api/routes.dart';
+import '../domain/provider_activation.dart';
 import '../domain/provider_models.dart';
 
 /// Own professional profile (UC02). Authenticated, role Prestataire.
 abstract class ProviderRepository {
+  /// EP-011 `POST /users/me/provider`: turns on the provider capacity. The
+  /// 201 body (providerProfile) is not read: the app reloads the account.
+  Future<void> activate(ProviderActivation activation);
+
   /// EP-014 `GET /providers/me`.
   Future<ProviderProfile> fetchProfile();
 
@@ -18,6 +23,11 @@ abstract class ProviderRepository {
 class HttpProviderRepository implements ProviderRepository {
   HttpProviderRepository(this._api);
   final ApiClient _api;
+
+  @override
+  Future<void> activate(ProviderActivation activation) async {
+    await _api.postJson(ApiRoutes.activateProvider, body: activation.toJson());
+  }
 
   @override
   Future<ProviderProfile> fetchProfile() async {

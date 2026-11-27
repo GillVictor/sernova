@@ -12,6 +12,7 @@ import 'features/auth/data/auth_repository.dart';
 import 'features/auth/data/secure_token_store.dart';
 import 'features/auth/presentation/auth_gate.dart';
 import 'features/auth/presentation/session_controller.dart';
+import 'features/auth/presentation/signup_controller.dart';
 import 'shell/app_role.dart';
 import 'shell/app_shell.dart';
 
@@ -38,6 +39,7 @@ Future<void> main() async {
 
   AppDependencies? deps;
   SessionController? session;
+  SignupController? signup;
   try {
     if (_useFakeApi) {
       deps = AppDependencies.fake(providerActive: _fakeProviderActive);
@@ -45,17 +47,18 @@ Future<void> main() async {
       final built = _buildHttp();
       deps = built.deps;
       session = built.session;
+      signup = built.signup;
     }
   } on ConfigException {
     deps = null;
   }
   // Resume a stored session (the login screen shows a spinner meanwhile).
   if (session != null) unawaited(session.restore());
-  runApp(ServNovaApp(deps: deps, session: session));
+  runApp(ServNovaApp(deps: deps, session: session, signup: signup));
 }
 
 /// Real API. Returns a session unless the debug-only development token is used.
-({AppDependencies deps, SessionController? session}) _buildHttp() {
+({AppDependencies deps, SessionController? session, SignupController? signup}) _buildHttp() {
   if (_apiBaseUrl.isEmpty) throw const ConfigException();
   final uri = Uri.parse(_apiBaseUrl);
   // Plain HTTP only for a local backend in debug builds.
@@ -68,7 +71,7 @@ Future<void> main() async {
       allowInsecure: allowInsecure,
       accessToken: () => _devAccessToken,
     );
-    return (deps: AppDependencies.http(api), session: null);
+    return (deps: AppDependencies.http(api), session: null, signup: null);
   }
 
   // The client and the session need each other: the client reads the access
@@ -82,16 +85,21 @@ Future<void> main() async {
   );
   // The refresh token lives in the platform's secure storage (D31), so the
   // session survives a restart.
-  session = SessionController(auth: HttpAuthRepository(api), store: SecureTokenStore());
-  return (deps: AppDependencies.http(api), session: session);
+  final auth = HttpAuthRepository(api);
+  session = SessionController(auth: auth, store: SecureTokenStore());
+  final signup = SignupController(auth: auth, session: session, countryCode: _countryCode);
+  return (deps: AppDependencies.http(api), session: session, signup: signup);
 }
 
 class ServNovaApp extends StatelessWidget {
-  const ServNovaApp({super.key, required this.deps, this.session});
+  const ServNovaApp({super.key, required this.deps, this.session, this.signup});
   final AppDependencies? deps;
 
   /// Null in fake or development-token mode: the login screen is skipped.
   final SessionController? session;
+
+  /// Sign-up and phone verification; null when there is no session.
+  final SignupController? signup;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -111,6 +119,7 @@ class ServNovaApp extends StatelessWidget {
                 ? _shell(deps!, null)
                 : AuthGate(
                     session: session!,
+                    signup: signup,
                     signedInBuilder: (_) => _shell(deps!, session),
                   ),
       );

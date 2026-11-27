@@ -4,6 +4,8 @@ import '../../../core/api/api_exception.dart';
 import '../../../core/api/api_failure.dart';
 import '../data/auth_repository.dart';
 import '../data/token_store.dart';
+import '../domain/auth_tokens.dart';
+import '../domain/phone_number.dart';
 
 enum SessionStatus {
   /// The stored session (if any) has not been checked yet.
@@ -67,10 +69,8 @@ class SessionController extends ChangeNotifier {
     failure = null;
     _notify();
     try {
-      final tokens = await _auth.login(phone: phone.trim(), password: password);
-      _accessToken = tokens.accessToken;
-      await _persist(tokens.refreshToken);
-      status = SessionStatus.signedIn;
+      final tokens = await _auth.login(phone: PhoneNumber.normalize(phone), password: password);
+      await signInWith(tokens);
       return true;
     } catch (e) {
       failure = ApiFailure.from(e);
@@ -80,6 +80,14 @@ class SessionController extends ChangeNotifier {
       busy = false;
       _notify();
     }
+  }
+
+  /// Signs in with tokens obtained elsewhere (EP-002, after the phone check).
+  Future<void> signInWith(AuthTokens tokens) async {
+    _accessToken = tokens.accessToken;
+    await _persist(tokens.refreshToken);
+    failure = null;
+    _setStatus(SessionStatus.signedIn);
   }
 
   /// EP-005. Renews both tokens. Concurrent callers share one request.

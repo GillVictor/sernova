@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_dependencies.dart';
+import '../features/account/presentation/client_account_page.dart';
 import '../features/catalog/presentation/offer_detail_page.dart';
 import '../features/catalog/presentation/search_results_page.dart';
 import '../features/provider/presentation/dashboard_page.dart';
@@ -13,6 +14,7 @@ class ShellContext {
     required this.deps,
     required this.countryCode,
     required this.goToTab,
+    this.reloadAccount,
   });
 
   final AppDependencies deps;
@@ -20,6 +22,10 @@ class ShellContext {
 
   /// Selects another tab of the current role by its [NavDestination.id].
   final void Function(String id) goToTab;
+
+  /// Reloads the account (EP-009) after something changed it, e.g. the
+  /// provider capacity was turned on. Null in tests that do not need it.
+  final VoidCallback? reloadAccount;
 }
 
 typedef PageBuilder = Widget Function(BuildContext context, ShellContext shell);
@@ -83,11 +89,18 @@ final List<NavDestination> _client = [
     selectedIcon: Icons.shopping_cart,
     labelKey: 'nav.orders',
   ),
-  const NavDestination(
+  NavDestination(
     id: 'account',
     icon: Icons.person_outline,
     selectedIcon: Icons.person,
     labelKey: 'nav.account',
+    builder: (context, shell) => ClientAccountPage(
+      account: shell.deps.account,
+      provider: shell.deps.provider,
+      catalog: shell.deps.catalog,
+      countryCode: shell.countryCode,
+      onProviderActivated: shell.reloadAccount,
+    ),
   ),
 ];
 
